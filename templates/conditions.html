@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <title>Observing conditions</title>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 50px;
+            }
+
+            div {
+                max-width: 700px;
+                margin: 0 auto;
+            }
+
+            .data {
+                padding: 20px;
+                border: 1px solid #ccc;
+                border-radius: 10px;
+                background-color: #f9f9f9;
+            }
+
+            label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: bold;
+                font-size: 16px;
+                line-height: 2;
+            }
+
+            button {
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                background-color: #333;
+                color: white;
+                cursor: pointer;
+            }
+
+            button:hover {
+                background-color: #555;
+            }
+
+            img {
+                width: 190px;
+                margin-top: -10px;
+            }
+
+            .warning {
+                border: 5px solid orange;
+                background-color: yellow;
+            }
+
+            .limit {
+                border: 5px solid red;
+                background-color: yellow;
+            }
+        </style>
+        <script>
+            function WindDir(wd) {
+                // convert azimut to direction
+                const windDirs = {
+                    'N': 0, 'NNE': 22.5, 'NE': 45, 'ENE': 67.5, 'E': 90, 'ESE': 112.5, 'SE': 135, 'SSE': 157.5, 'S': 180, 'SSW': 202.5, 'SW': 225, 'WSW': 247.5, 'W': 270, 'WNW': 292.5, 'NW': 315, 'NNW': 337.5
+                };
+                var x0 = 'N';
+
+                for (let x of Object.keys(windDirs).reverse()) {
+                    if (wd >= windDirs[x] + 22.5 / 2) {
+                        return x0;
+                    } else {
+                        x0 = x;
+                    }
+                }
+                return 'N';
+            }
+        </script>
+    </head>
+
+    <body>
+        <!-- header -->
+        <div>
+            <h1 style="display: inline;">Observing conditions</h1>
+            <img style="display: inline; float: right;" src="{{ url_for('static',filename='logo.svg') }}"
+                    alt="logo">
+        </div>
+        {% if condi %}
+        <center>
+            <h3>{{ condi['date'] }} {{ condi['time'] }}</h3>
+        </center>
+        <!-- telescope status -->
+        <div class="data">
+            <label style="display: inline;">RA</label> {{ condi['RA'] }}
+            <br>
+            <label style="display: inline;">DEC</label> {{ condi['DEC'] }}
+            <br><br>
+
+            <label>Offsets (arcsec)</label>
+            <label style="display: inline;">User:</label>
+            <label style="display: inline;">RA</label>
+            <span {% if (condi['user-offset_RA'] | abs )>200 %}class="warning"{% endif %}>
+                {{ condi['user-offset_RA'] | round(1) }}
+            </span>
+            <label style="display: inline;"> DEC</label>
+            <span {% if (condi['user-offset_DEC'] | abs )>200 %}class="warning"{% endif %}>
+                {{ condi['user-offset_DEC'] | round(1) }}
+            </span>
+            <br>
+            <label style="display: inline;">Guider:</label>
+            <label style="display: inline;">RA</label>
+            <span {% if (condi['guider-offset_RA'] | abs )>200 %}class="warning"{% endif %}>
+                {{ condi['guider-offset_RA'] | round(1) }}
+            </span>
+            <label style="display: inline;"> DEC</label>
+            <span {% if (condi['guider-offset_DEC'] | abs )>200 %}class="warning"{% endif %}>
+                {{ condi['guider-offset_DEC'] | round(1) }}
+            </span>
+        </div>
+        <br>
+        <!-- weather conditions -->
+        <div class="data">
+            <label style="display: inline;">Temperature</label> {{ condi['temp'] | round(1) }}&deg;C
+            <br>
+            <label style="display: inline;">Humidity</label>
+            <span {% if condi['hum']>90 %}class="limit"{%
+                elif condi['hum']>70 %}class="warning"{% endif %}>
+                {{ condi['hum'] | round(1) }}&percnt;
+            </span>
+            <br>
+            <label style="display: inline;">Wind</label>
+            <span {% if condi['wind']>17 %}class="limit"{%
+                elif condi['wind']>8 %}class="warning"{% endif %}>
+                {{ condi['wind'] | round(1) }} m/s
+            </span>@ {{ condi['wind-dir'] | round(1) }}&deg; (<span id="wind"></span>)
+            <script>
+                var wind = WindDir({{ condi['wind-dir'] }});
+                document.getElementById("wind").textContent = wind;
+            </script>
+            <br>
+            <label style="display: inline;">Pyrgeometer (clouds)</label>
+            <span {% if condi['clouds']>-70 %}class="limit"{%
+                elif condi['clouds']>-80 %}class="warning"{% endif %}>
+                {{ condi['clouds'] | round(1) }} W/m&sup2;
+            </span>
+            <br>
+            <label style="display: inline;">Atmospheric pressure</label> {{ condi['press'] | round(1) }} hPa
+            <br>
+            <label style="display: inline;">Sky brightness</label>
+            <span {% if condi['bright']/1000>10 %}class="limit"{%
+                elif condi['bright']/1000>0.01 %}class="warning"{% endif %}>
+                {{ (condi['bright']/1000) | round(2) }} kLux
+            </span>
+            <br>
+            <label style="display: inline;">Seeing (FWHM)</label>
+            <span {% if condi['fwhm']>5 %}class="limit"{%
+                elif condi['fwhm']>3 %}class="warning"{% endif %}>
+                {{ condi['fwhm'] | round(2) }} arcsec
+            </span>
+            <br>
+            <label style="display: inline;">Sun altitude</label>
+            <span {% if condi['sun']>-12 %}class="limit"{%
+                elif condi['sun']>-18 %}class="warning"{% endif %}>
+                {{ condi['sun'] | round(0) }}&deg;
+            </span>
+            <br>
+        </div>
+        <br>
+        <!-- Plotly chart will be drawn inside this TD by id -->
+        <center>
+            <table>
+                <tr>
+                    <td id='temp'></td>
+                    <td id='hum'></td>
+                </tr>
+                <tr>
+                    <td id='windP'></td>
+                    <td id='wind-dir'></td>
+                </tr>
+                <tr>
+                    <td id='clouds'></td>
+                    <td id='bright'></td>
+                </tr>
+                <tr>
+                    <td id='fwhm'></td>
+                    <td id='guider'></td>
+                </tr>
+            </table>
+        </center>
+        {% else %}
+        <center>
+            <label style="color: red; border: 2px solid red; background-color: yellow; max-width: 700px;">No guider
+                images found in the specified directory.</label>
+        </center>
+        {% endif %}
+
+        <script>
+            // This script will reload the page every 60 seconds (60000 milliseconds)
+            setTimeout(function () {
+                window.location.reload();
+            }, 60000); // 60 seconds
+        </script>
+
+        {% if plots %}
+        <!-- make plots using plotly -->
+        {% if local %}
+        <script src="{{ url_for('static',filename='plotly.min.js' ) }}"></script>
+        {% else %}
+        <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+        {% endif %}
+        <script type='text/javascript'>
+            var dt = {{ plots['dt'] | safe}};  //datetime -> x-axis
+
+            var temp = {
+                x: dt,
+                y: {{ plots['temp'] }},
+            type: 'scatter'
+            };
+            Plotly.newPlot('temp', [temp], { yaxis: { title: 'Temperature (&deg;C)' } }, { displayModeBar: false });
+
+            var hum = {
+                x: dt,
+                y: {{ plots['hum'] }},
+            type: 'scatter'
+            };
+            Plotly.newPlot('hum', [hum], { yaxis: { title: 'Humidity (%)' } }, { displayModeBar: false });
+
+            var wind = {
+                x: dt,
+                y: {{ plots['wind'] }},
+            type: 'scatter'
+            };
+            Plotly.newPlot('windP', [wind], { yaxis: { title: 'Wind speed (m/s)' } }, { displayModeBar: false });
+
+            var windD = {
+                x: dt,
+                y: {{ plots['wind-dir'] }},
+            type: 'scatter'
+            };
+            Plotly.newPlot('wind-dir', [windD], { yaxis: { title: 'Wind direction (&deg;)' } }, { displayModeBar: false });
+
+            var clouds = {
+                x: dt,
+                y: {{ plots['clouds'] }},
+            type: 'scatter'
+            };
+            Plotly.newPlot('clouds', [clouds], { yaxis: { title: 'Pyrgeometer (W/m2)' } }, { displayModeBar: false });
+
+            var bright = {
+                x: dt,
+                y: {{ plots['bright'] }},
+            type: 'scatter'
+            };
+            Plotly.newPlot('bright', [bright], { yaxis: { title: 'Brightness (kLux)' } }, { displayModeBar: false });
+
+            {% if plots['fwhm'] %}
+            var dtF = {{ plots['dtF'] | safe}};  //datetime fwhm -> x-axis
+            var fwhm = {
+                x: dtF,
+                y: {{ plots['fwhm'] }},
+            type: 'scatter'
+            };
+            Plotly.newPlot('fwhm', [fwhm], { yaxis: { title: 'Seeing/FWHM (arcsec)', range: [0.5, Math.min(Math.max(...fwhm.y), 5)] } }, { displayModeBar: false });
+            {% endif %}
+
+            var dtG = {{ plots['dtG'] | safe}};  //datetime guider -> x-axis
+            var ra = {
+                x: dtG,
+                y: {{ plots['guider-RA'] }},
+            type: 'scatter',
+                name: 'RA'
+            };
+            var dec = {
+                x: dtG,
+                y: {{ plots['guider-DEC'] }},
+            type: 'scatter',
+                name: 'DEC'
+            };
+            // set max. axis range to +-5
+            var range = Math.min(Math.max(-Math.min(...ra.y), Math.max(...ra.y), -Math.min(...dec.y), Math.max(...dec.y)), 5);
+            Plotly.newPlot('guider', [ra, dec], { yaxis: { title: 'Guiding (arcsec)', range: [-range, range] } }, { displayModeBar: false });
+        </script>
+        {% endif %}
+    </body>
+
+</html>

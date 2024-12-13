@@ -1,0 +1,20 @@
+Observing PC:
+
+1. install python3 and 
+pandas
+matplotlib
+astropy==6
+numpy
+scipy==1.14
+scikit-image==0.24
+flask
+waitress
+reportlab 
+
+2. create dirs notes, logs, fwhm
+3. create symlink to logs in static
+4. change path0 in web.py, pages/admin.py (folder with data)
+5. change working program dir in web_start.sh and web.sh
+6. change path to guider images in make_log.py (guider and guider0)
+7. change path to data (path) and working dir in new_log.sh and all_log.sh
+8. set cron for new_log.sh and autostart for web_start.sh or web.sh

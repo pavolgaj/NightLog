@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <title>Observing status</title>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    </head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 50px;
+        }
+
+        form {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+        }
+
+        .form-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .form-group input {
+            flex: 4;
+            padding: 10px;
+            border-radius: 5px;
+            width: 100%;
+        }
+
+        textarea {
+            min-height: 100px;
+            padding: 10px;
+            border-radius: 5px;
+            width: 95%;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #333;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #555;
+        }
+
+        img {
+            width: 190px;
+            margin-top: -10px;
+        }
+        
+        .ic {
+            max-height: 17px;
+            width:1em;
+            margin-right: 0.5em;
+            margin-left: 1em;
+        }
+
+        .exp {
+            width:4em;
+            text-align: right;
+        }
+    </style>
+
+    <body>
+        <form method="post" class="left-align" id="mainForm">
+            <div>
+                <h1 style="display: inline;">Incoming files</h1>
+                <img style="display: inline; float: right;" src="{{ url_for('static',filename='logo.svg') }}"
+                    alt="logo">
+            </div>
+            <br>
+            <div>
+                <label for="general"><b>General notes</b>
+                </label>
+                <textarea id="general" name="general">{{ notes['general'] }}</textarea>
+            </div>
+            <br>
+            <div>
+                <label for="meteo"><b>Meteo notes</b>
+                </label>
+                <textarea id="meteo" name="meteo">{{ notes['meteo'] }}</textarea>
+            </div>
+            <br>
+            {% if saved %}
+            <script>
+                // show popup info
+                alert("Notes saved!")
+                location.href = "{{ url_for('main') }}";
+            </script>
+            {% endif %}
+            <center>
+                <button type="submit" name="save" title="Save">Save
+                </button>
+            </center>
+            <center>
+                <h2>Files in Directory: {{ path }}</h2>
+                <!-- remeber old folder name -->
+                <input type="hidden" id="path" name="path" value="{{path}}">
+            </center>
+            <div class="form-group">
+                <label style="flex: 12; max-width: 60%;"><b>Filename</b></label>
+                <label class="exp"><b>Exp.</b></label>
+                <label class="exp" style="margin-right: 0.5em;"><b>Sim.</b></label>
+                <label style="width:2em; margin-left: 0.5em;"><b>IC</b></label>
+                <label style="width:4em;"><b>SNR</b></label>
+                <label style="flex: 4; margin-left: 0.5em;"><b>Notes</b></label>
+            </div>
+            {% for path, name in files.items() %}
+            <!-- list all files in dir -->
+            <div class="form-group">
+                <label for="{{ path }}" style="flex: 12; max-width: 60%;">{{ name }}</label>
+                <label class="exp">{% if exp[path] is number %}{{ exp[path] | round | int }}{% endif %}</label>
+                <label class="exp">{{ sim[path] }}</label>
+                {%if ic[path] %}
+                <img class="ic" src="{% if ic[path]=='yes' %}{{ url_for('static',filename='yes.svg') }}{% elif ic[path]=='no' %}{{ url_for('static',filename='no.svg') }}{% else %}{{ url_for('static',filename='err.svg') }}{% endif %}" alt="ic">
+                {% else %}
+                <label class="ic"></label>
+                {% endif %}
+                <label style="box-sizing: border-box; text-align: center; width: 3em;
+                {% if snr[path] is number %}
+                {% if snr[path]<5 or snr[path]>150 %}border: 5px solid red;background-color: yellow;
+                {% elif snr[path]<10 %}border: 5px solid darkorange;background-color: yellow;
+                {% endif %}
+                {% endif %}">{% if snr[path] is number %}{{ snr[path] | round | int }}{% endif %}</label>
+                <input style="margin-left: 0.5em;" type="text" id="{{ path }}" name="{{ path }}" value="{{ notes[path] }}">
+            </div>
+            {% endfor %}
+            {% if not files %}
+            <!-- no data -->
+            <label style="color: red; border: 2px solid red; background-color: yellow;">No files found in the specified
+                directory.</label>
+            {% endif %}
+            <br>
+            <center>
+                <button type="submit" name="save" title="Save">Save</button>
+            </center>
+        </form>
+        <script>
+            // Function to submit the form
+            function submitForm() {
+                document.getElementById('mainForm').submit();
+            }
+            // Automatically submit the form every 1 minute (60000 milliseconds)
+            setInterval(submitForm, 60000);
+        </script>
+    </body>
+
+</html>
