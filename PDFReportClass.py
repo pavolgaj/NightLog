@@ -31,7 +31,7 @@ class PDFReport(object):
 
     def set_title(self,title):
         self.doc.title = title
-        
+
     def set_author(self,author):
         self.doc.author = author
 
@@ -63,7 +63,7 @@ class PDFReport(object):
             title_style = styles['Heading3']
             title_style.alignment = 1
             title_style.textColor='red'
-        
+
             p = Paragraph("NO observations!",title_style)
             elements.append(p)
             elements.append(Spacer(1,0.2*inch))
@@ -74,7 +74,7 @@ class PDFReport(object):
         self.docElements.extend(elements)
 
         return elements;
-    
+
     def put_notes_on_pdfpages(self,gen_notes,meteo_notes):
         #general and meteo notes
         elements = []
@@ -85,29 +85,29 @@ class PDFReport(object):
         title_style.alignment = 1
         styleN = styles["BodyText"]
         styleN.alignment = 4
-        
+
         p = Paragraph("General notes",title_style)
         elements.append(p)
-        elements.append(Spacer(1,0.2*inch))     
-        
+        elements.append(Spacer(1,0.2*inch))
+
         note1=Paragraph(gen_notes,styleN)
         elements.append(note1)
         elements.append(Spacer(1,0.2*inch))
-        
+
         p = Paragraph("Meteo notes",title_style)
         elements.append(p)
-        elements.append(Spacer(1,0.2*inch))  
-        
+        elements.append(Spacer(1,0.2*inch))
+
         note2=Paragraph(meteo_notes,styleN)
         elements.append(note2)
         elements.append(Spacer(1,0.2*inch))
-        
+
         elements.append(PageBreak())
 
         self.docElements.extend(elements)
-        
+
         return elements;
-        
+
 
     def put_meteo_on_pdfpage(self, df, seeing=None):
         #graphs and table with meteo data
@@ -143,7 +143,7 @@ class PDFReport(object):
         meteo.append(['Wind speed','%.1f (%s)' %(np.nanmin(df['wind']),WindDir(df['winddir'][wmin])),'%.1f (%s)' %(np.nanmax(df['wind']),WindDir(df['winddir'][wmax])),'%.1f (%s)' %(np.nanmedian(df['wind']),WindDir(wmean))])
         meteo.append(['Pyrgeo',round(np.nanmin(df['clouds']),1),round(np.nanmax(df['clouds']),1),round(np.nanmedian(df['clouds']),1)])
         if seeing is None: meteo.append(['Seeing','---','---','---'])
-        else: meteo.append(['Seeing',round(np.nanmin(seeing[:,1]),1),round(np.nanmax(seeing[:,1]),1),round(np.nanmedian(seeing[:,1]),1)])   
+        else: meteo.append(['Seeing',round(np.nanmin(seeing[:,1]),1),round(np.nanmax(seeing[:,1]),1),round(np.nanmedian(seeing[:,1]),1)])
 
         t = Table(meteo)
         t.setStyle(TableStyle([('FONTNAME', (0, 0), (-1, -1), "Helvetica"),
@@ -185,16 +185,16 @@ class PDFReport(object):
         axs[2,0].set_ylabel('Pyrgeo (Clouds)')
         #limit
         if axs[2,0].get_ylim()[1]>-70: axs[2,0].axhline(y=-70,color='r')
-        if axs[2,0].get_ylim()[1]>-80: axs[2,0].axhline(y=-80,color='orange',linestyle='--')        
+        if axs[2,0].get_ylim()[1]>-80: axs[2,0].axhline(y=-80,color='orange',linestyle='--')
         if seeing is None: axs[2,1].remove()
-        else: 
+        else:
             axs[2,1].plot(dates.date2num(seeing[:,0]),seeing[:,1],'.')
             axs[2,1].set_ylabel('Seeing = FWHM (arcsec)')
             axs[2,1].set_xlim(axs[2,0].get_xlim())
         for i in range(3):
             for j in range(2):
                 axs[i,j].xaxis.set_major_formatter(hfmt)
-        
+
         plt.tight_layout()
 
         elements.append(fig2image(fig))
@@ -217,7 +217,7 @@ def first_page_layout(canvas, doc):
     #add logo
     logo = ImageReader('logo.png')
     canvas.drawImage(logo, 10*mm, PDFReport.PAGE_HEIGHT-20*mm,width=50*mm,height=10*mm, mask='auto',preserveAspectRatio=True)
-    
+
     canvas.setFont('Times-Bold', 14)
     canvas.drawCentredString(PDFReport.PAGE_WIDTH / 2.0, PDFReport.PAGE_HEIGHT-0.75 * inch, 'Observing date: '+doc.title)
     canvas.setFont('Times-Roman', 9)
