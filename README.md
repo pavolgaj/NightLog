@@ -1,4 +1,8 @@
 # Observing logs
+![GitHub language count](https://img.shields.io/github/languages/count/pavolgaj/NightLog)
+![](https://img.shields.io/github/languages/top/pavolgaj/nightlog.svg?style=flat)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/8e5dec49454b4a72b718d129f1cca477)](https://app.codacy.com/gh/pavolgaj/NightLog/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+
 Observing log for PlatoSpec (E152). Created automatically based on the header of FITS files. Web interface to add notes to the observations, which will be included in the generated log.
 
 ## Requirements
