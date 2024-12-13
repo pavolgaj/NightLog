@@ -26,10 +26,10 @@ def fwhm(name):
     #TODO! datetime/jd...?
 
     image = fits.getdata(name).astype('float')
-        
+
     #denoise
     image=median_filter(image,np.ones((3, 3)))
-    
+
     #size of 1star subframe
     size=30
     x=np.arange(-size,size,1)
@@ -57,7 +57,7 @@ def fwhm(name):
         y0=int(star[0])
 
         try: popt,pcov=curve_fit(gauss2D,(x,y),image[y0-size:y0+size,x0-size:x0+size].ravel(),p0=p0)  #fit on subimage
-        except:
+        except (RuntimeError, ValueError):
             #fit not successsful...
             # fig, ax = mpl.subplots(1, 1)
             # ax.imshow(image[y0-size:y0+size,x0-size:x0+size], cmap=mpl.cm.jet, origin='lower',extent=(-size,size,-size,size))
