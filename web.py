@@ -152,8 +152,8 @@ def main():
                     if compU>100 and compI>5: comp=True
                     else: comp=False
                     
-                    if flatU>10: flat=True
-                    else: flat=False
+                    #if flatU>10: flat=True
+                    #else: flat=False
 
                     if apfilt2=='FILTER_CLOSED': sim[f]='off'
                     else:
