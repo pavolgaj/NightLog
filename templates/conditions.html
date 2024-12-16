@@ -180,7 +180,7 @@
                 </tr>
                 <tr>
                     <td id='clouds'></td>
-                    <td id='bright'></td>
+                    <td id='press'></td>
                 </tr>
                 <tr>
                     <td id='fwhm'></td>
@@ -247,12 +247,12 @@
             };
             Plotly.newPlot('clouds', [clouds], { yaxis: { title: 'Pyrgeometer (W/m2)' } }, { displayModeBar: false });
 
-            var bright = {
+            var press = {
                 x: dt,
-                y: {{ plots['bright'] }},
+                y: {{ plots['press'] }},
             type: 'scatter'
             };
-            Plotly.newPlot('bright', [bright], { yaxis: { title: 'Brightness (kLux)' } }, { displayModeBar: false });
+            Plotly.newPlot('press', [press], { yaxis: { title: 'Pressure (hPa)' } }, { displayModeBar: false });
 
             {% if plots['fwhm'] %}
             var dtF = {{ plots['dtF'] | safe}};  //datetime fwhm -> x-axis
