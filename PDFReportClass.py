@@ -117,6 +117,7 @@ class PDFReport(object):
         styles = getSampleStyleSheet()
         title_style = styles['Heading3']
         title_style.alignment = 1
+        elements.append(Spacer(1, -0.2 * inch))
         p = Paragraph("Weather statistics",title_style)
         elements.append(p)
         elements.append(Spacer(1,0.2*inch))
@@ -152,8 +153,7 @@ class PDFReport(object):
                                ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
                                ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
                                ('BOX', (0, 0), (-1, -1), 0.25, colors.black)]))
-        elements.append(t)
-        elements.append(Spacer(1, 0.2 * inch))
+        #elements.append(t)
 
         x=dates.date2num(df['dt'])
         hfmt=dates.DateFormatter('%H:%M')
@@ -165,7 +165,7 @@ class PDFReport(object):
             buf.seek(0)
             x, y = f.get_size_inches()
             return Image(buf, x * inch, y * inch)
-
+        
         fig, axs = plt.subplots(3,2,dpi=300,figsize=(8,7))
         axs[0,0].plot(x,df['temp'],'.')
         axs[0,0].set_ylabel('Temperature (C)')
@@ -186,16 +186,27 @@ class PDFReport(object):
         #limit
         if axs[2,0].get_ylim()[1]>-70: axs[2,0].axhline(y=-70,color='r')
         if axs[2,0].get_ylim()[1]>-80: axs[2,0].axhline(y=-80,color='orange',linestyle='--')
-        if seeing is None: axs[2,1].remove()
-        else:
-            axs[2,1].plot(dates.date2num(seeing[:,0]),seeing[:,1],'.')
-            axs[2,1].set_ylabel('Seeing = FWHM (arcsec)')
-            axs[2,1].set_xlim(axs[2,0].get_xlim())
+        axs[2,1].plot(x,df['press'],'.')
+        axs[2,1].set_ylabel('Pressure (hPa)')
         for i in range(3):
             for j in range(2):
                 axs[i,j].xaxis.set_major_formatter(hfmt)
 
         plt.tight_layout()
+        
+        elements.append(Spacer(1, -0.2 * inch))
+        if seeing is None: 
+            elements.append(Table([[Spacer(0,0),t,Spacer(0,0)]],colWidths=[10*mm,90*mm,100*mm]))
+        else:
+            fig1, ax = plt.subplots(1,1,dpi=300,figsize=(3.8,2))
+            ax.plot(dates.date2num(seeing[:,0]),seeing[:,1],'.')
+            ax.set_ylabel('Seeing = FWHM (arcsec)')
+            ax.set_xlim(axs[2,0].get_xlim())
+            ax.xaxis.set_major_formatter(hfmt)
+            plt.tight_layout()
+            elements.append(Table([[Spacer(0,0),t,fig2image(fig1)]],colWidths=[10*mm,90*mm,100*mm]))        
+            
+        #elements.append(Spacer(1, -0.2 * inch))
 
         elements.append(fig2image(fig))
 
