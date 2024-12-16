@@ -147,8 +147,13 @@ def main():
                     compU=header['CU_COMP_LAMP_VOLTAGE']
                     compI=header['CU_COMP_LAMP_CURRENT']
                     cu_ic=header['CU_IODINE_CELL']
+                    flatU=header['CU_DEMANDED_LED_LAMP_CURRENT']
 
-                    if compU<50 or compI<5: comp=False
+                    if compU>100 and compI>5: comp=True
+                    else: comp=False
+                    
+                    if flatU>10: flat=True
+                    else: flat=False
 
                     if apfilt2=='FILTER_CLOSED': sim[f]='off'
                     else:
@@ -356,8 +361,13 @@ def admin():
                 compU=header['CU_COMP_LAMP_VOLTAGE']
                 compI=header['CU_COMP_LAMP_CURRENT']
                 cu_ic=header['CU_IODINE_CELL']
+                flatU=header['CU_DEMANDED_LED_LAMP_CURRENT']
 
-                if compU<50 or compI<5: comp=False
+                if compU>100 and compI>5: comp=True
+                else: comp=False
+        
+                if flatU>10: flat=True
+                else: flat=False
 
                 if apfilt2=='FILTER_CLOSED': simc[f]='off'
                 else:
