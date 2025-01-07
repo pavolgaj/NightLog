@@ -165,6 +165,18 @@
                 {{ condi['sun'] | round(0) }}&deg;
             </span>
             <br>
+            <label style="display: inline;">Astro. twilight</label>
+            <span {% if condi['astro-dt']<0.5 %}class="limit"{%
+                elif condi['astro-dt']<1 %}class="warning"{% endif %}>
+                {{ condi['astro'] }} (in {{ condi['astro-dt'] | round(1) }} hours)
+            </span>
+            &nbsp;&nbsp;
+            <label style="display: inline;">Sunrise</label>
+            <span {% if condi['rise-dt']<0.5 %}class="limit"{%
+                elif condi['rise-dt']<1 %}class="warning"{% endif %}>
+                {{ condi['rise'] }} (in {{ condi['rise-dt'] | round(1) }} hours)
+            </span>
+            <br>
         </div>
         <br>
         <!-- Plotly chart will be drawn inside this TD by id -->

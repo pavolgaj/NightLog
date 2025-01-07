@@ -8,7 +8,7 @@ import datetime
 from fwhm import *
 from snr import SNR
 from astropy.coordinates import get_sun, AltAz, EarthLocation
-from astropy.time import Time
+from astropy.time import Time, TimeDelta
 import astropy.units as u
 
 import logging
@@ -366,8 +366,8 @@ def admin():
                 if compU>100 and compI>5: comp=True
                 else: comp=False
         
-                if flatU>10: flat=True
-                else: flat=False
+                #if flatU>10: flat=True
+                #else: flat=False
 
                 if apfilt2=='FILTER_CLOSED': simc[f]='off'
                 else:
@@ -397,6 +397,33 @@ def sunAlt(date,time,lon,lat,alt=0):
     altaz=sun.transform_to(altazCoor)
 
     return altaz.alt.degree
+
+def sunRise(date,time,lon,lat,alt=0):
+    '''get next astro. twilight and sunrise'''
+    dt=Time(date+' '+time)
+
+    sun=get_sun(dt)
+    
+    dec=sun.dec.degree
+    
+    #sunrise
+    ha=np.rad2deg(np.arccos(-np.tan(np.deg2rad(dec))*np.tan(np.deg2rad(float(lat)))))
+    sid=360-ha+sun.ra.degree-dt.sidereal_time('mean',float(lon)*u.deg).degree
+    if sid>=360: sid-=360
+    if sid>=180: sid-=360
+    
+    rise=dt+TimeDelta(sid/15*3600*u.second)
+    
+    #astro twilight
+    ha=np.rad2deg(np.arccos((np.sin(np.deg2rad(-18))-np.sin(np.deg2rad(dec))*np.sin(np.deg2rad(float(lat))))/(np.cos(np.deg2rad(dec))*np.cos(np.deg2rad(float(lat))))))
+    sid=360-ha+sun.ra.degree-dt.sidereal_time('mean',float(lon)*u.deg).degree
+    if sid>=360: sid-=360
+    if sid>=180: sid-=360
+    
+    astro=dt+TimeDelta(sid/15*3600*u.second)
+    
+    return astro, rise
+        
 
 def guiderInfo(name):
     ''''read info from guider header'''
@@ -441,6 +468,13 @@ def guiderInfo(name):
     info['bright']=header['OCBRTM']
 
     info['sun']=sunAlt(info['date'],info['time'],header['LONGITUD'],header['LATITUDE'],header['HEIGHT'])
+    
+    astro, rise=sunRise(info['date'],info['time'],header['LONGITUD'],header['LATITUDE'],header['HEIGHT'])
+    
+    info['astro']=astro.strftime('%H:%M')
+    info['astro-dt']=(astro-Time(info['date']+' '+info['time'])).sec/3600
+    info['rise']=rise.strftime('%H:%M')
+    info['rise-dt']=(rise-Time(info['date']+' '+info['time'])).sec/3600
 
     return info
 
