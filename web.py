@@ -151,7 +151,7 @@ def main():
 
                     if compU>100 and compI>5: comp=True
                     else: comp=False
-                    
+
                     #if flatU>10: flat=True
                     #else: flat=False
 
@@ -365,7 +365,7 @@ def admin():
 
                 if compU>100 and compI>5: comp=True
                 else: comp=False
-        
+
                 #if flatU>10: flat=True
                 #else: flat=False
 
@@ -400,30 +400,29 @@ def sunAlt(date,time,lon,lat,alt=0):
 
 def sunRise(date,time,lon,lat,alt=0):
     '''get next astro. twilight and sunrise'''
-    dt=Time(date+' '+time)
+    #approx. local noon (in UTC)
+    dt=Time((Time(date+' '+time)-TimeDelta(14*u.hour)).strftime('%Y-%m-%d')+' '+str(12-int(round(float(lon)/15))).rjust(2,'0')+':00:00')
 
     sun=get_sun(dt)
-    
+
     dec=sun.dec.degree
-    
+
     #sunrise
     ha=np.rad2deg(np.arccos(-np.tan(np.deg2rad(dec))*np.tan(np.deg2rad(float(lat)))))
     sid=360-ha+sun.ra.degree-dt.sidereal_time('mean',float(lon)*u.deg).degree
     if sid>=360: sid-=360
-    if sid>=180: sid-=360
-    
+
     rise=dt+TimeDelta(sid/15*3600*u.second)
-    
+
     #astro twilight
     ha=np.rad2deg(np.arccos((np.sin(np.deg2rad(-18))-np.sin(np.deg2rad(dec))*np.sin(np.deg2rad(float(lat))))/(np.cos(np.deg2rad(dec))*np.cos(np.deg2rad(float(lat))))))
     sid=360-ha+sun.ra.degree-dt.sidereal_time('mean',float(lon)*u.deg).degree
     if sid>=360: sid-=360
-    if sid>=180: sid-=360
-    
+
     astro=dt+TimeDelta(sid/15*3600*u.second)
-    
+
     return astro, rise
-        
+
 
 def guiderInfo(name):
     ''''read info from guider header'''
@@ -468,9 +467,9 @@ def guiderInfo(name):
     info['bright']=header['OCBRTM']
 
     info['sun']=sunAlt(info['date'],info['time'],header['LONGITUD'],header['LATITUDE'],header['HEIGHT'])
-    
+
     astro, rise=sunRise(info['date'],info['time'],header['LONGITUD'],header['LATITUDE'],header['HEIGHT'])
-    
+
     info['astro']=astro.strftime('%H:%M')
     info['astro-dt']=(astro-Time(info['date']+' '+info['time'])).sec/3600
     info['rise']=rise.strftime('%H:%M')
