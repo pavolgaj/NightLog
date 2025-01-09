@@ -335,7 +335,8 @@ if len(data0)>0:
         f.close()
 
     #make csv log
-    df[['object','date','time','exposure','altitude','airmass','ra','dec','notes','filename','snr','ic','simult']].to_csv('logs/'+date+'_log.csv',index=False)
+    df['instrument']='platospec'
+    df[['object','date','time','exposure','altitude','airmass','ra','dec','notes','filename','snr','ic','simult','instrument']].to_csv('logs/'+date+'_log.csv',index=False)
 
     #rename cols and convert df for pdf
     df2=df[['object1','time','exposure','altitude','airmass','ra1','dec1','snr','simult','ic','notes1']].rename(columns={'ra1': 'ra', 'dec1': 'dec','notes1':'notes','object1':'object','simult':'sim'})
