@@ -11,6 +11,8 @@ from astropy.coordinates import get_sun, AltAz, EarthLocation
 from astropy.time import Time, TimeDelta
 import astropy.units as u
 
+from scipy import interpolate
+
 import logging
 
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -386,6 +388,27 @@ def admin():
 
     return render_template('admin.html',files=files,path=path,notes=notes,night=obs,saved=saved,snr=sn,ic=ics,exp=exps,sim=simc)
 
+def load_limits():
+    '''load and process limits'''
+    east=np.loadtxt('limits_east.txt')
+    west=np.loadtxt('limits_west.txt')
+    limits=np.append(east,west[::-1],axis=0)
+
+    i=np.where(np.abs(np.diff(np.sign(limits[:,1]+90)))>0)[0]
+    limits1=np.append(limits[:i[0]+1], [[(limits[i[0]+1,0]-limits[i[0],0])/(limits[i[0]+1,1]-limits[i[0],1])*(-90-limits[i[0],1])+limits[i[0],0],-89.99]],axis=0)
+    limits1=np.append(limits1, [[(limits[i[0]+1,0]-limits[i[0],0])/(limits[i[0]+1,1]-limits[i[0],1])*(-90-limits[i[0],1])+limits[i[0],0],-90.01]],axis=0)
+    limits1=np.append(limits1,limits[i[0]+1:i[1]+1],axis=0)
+    limits1=np.append(limits1, [[(limits[i[1]+1,0]-limits[i[1],0])/(limits[i[1]+1,1]-limits[i[1],1])*(-90-limits[i[1],1])+limits[i[1],0],-90.01]],axis=0)
+    limits1=np.append(limits1, [[(limits[i[1]+1,0]-limits[i[1],0])/(limits[i[1]+1,1]-limits[i[1],1])*(-90-limits[i[1],1])+limits[i[1],0],-89.99]],axis=0)
+    limits1=np.append(limits1,limits[i[1]+1:],axis=0)
+
+    eastLim=limits1[np.where(limits1[:,1]>-90)]
+    westLim=limits1[np.where(limits1[:,1]<-90)]
+
+    return eastLim, westLim
+
+eastLim, westLim = load_limits()
+
 def sunAlt(date,time,lon,lat,alt=0):
     '''get sun altitude for given location and UTC time'''
     loc=EarthLocation(lon=float(lon)*u.deg, lat=float(lat)*u.deg, height=float(alt)*u.meter)
@@ -474,6 +497,24 @@ def guiderInfo(name):
     info['astro-dt']=(astro-Time(info['date']+' '+info['time'])).sec/3600
     info['rise']=rise.strftime('%H:%M')
     info['rise-dt']=(rise-Time(info['date']+' '+info['time'])).sec/3600
+    
+    if header['TELPOS']==0: 
+        info['pos']='East'
+        limit=eastLim
+    else: 
+        info['pos']='West'
+        limit=westLim
+    
+    #estimate time to limits
+    ha=header['TELHA']
+    da=header['TELDA']
+    
+    i=np.where(limit[:,0]>ha)[0]
+    j=np.argmin(np.abs(da-limit[i,1]))
+    try:
+        f = interpolate.interp1d(limit[i,1],limit[i,0])
+        info['limit']=float((ha-f(da))/15)
+    except: info['limit']=(ha-limit[i[j],0])/15
 
     return info
 
