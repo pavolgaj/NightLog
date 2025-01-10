@@ -1,16 +1,22 @@
 from flask import Flask, redirect, url_for, render_template, request, session, send_file, flash
+
 import os
 import json
 import glob
 import subprocess
 import hashlib
 import datetime
+import base64
+import io
+
 from fwhm import *
 from snr import SNR
+
 from astropy.coordinates import get_sun, AltAz, EarthLocation
 from astropy.time import Time, TimeDelta
 import astropy.units as u
-
+import matplotlib.pyplot as plt
+import matplotlib.path as mplPath
 from scipy import interpolate
 
 import logging
@@ -38,6 +44,8 @@ path0='data/'
 guider='guider/'                 # Y/Y-m-d data from guider
 guider0=guider                   # guider - incoming
 guider_res=0.134    #resolution arcsec/px
+
+obs_lon=-70.739     #longitude of observatory
 
 #configure for logger
 logHandler=logging.FileHandler('errors.log')
@@ -408,6 +416,8 @@ def load_limits():
     return eastLim, westLim
 
 eastLim, westLim = load_limits()
+PathE=mplPath.Path(eastLim)
+PathW=mplPath.Path(westLim)
 
 def sunAlt(date,time,lon,lat,alt=0):
     '''get sun altitude for given location and UTC time'''
@@ -509,6 +519,12 @@ def guiderInfo(name):
     try:
         ha=float(header['TELHA'])
         da=float(header['TELDA'])
+        if header['TELPOS']==0:  
+            info['ha']=ha
+            info['de']=da
+        else: 
+            info['ha']=ha-180
+            info['de']=-180-da
     except ValueError: 
         info['limit']=-1
         return info
@@ -630,6 +646,106 @@ def conditions():
     else: local=False
 
     return render_template('conditions.html',condi=condi,plots=plots,local=local)
+
+def plotLim(ha,dec):
+    '''plot east/west telescope limits from hour angle and dec'''
+    if ha<-90: ha+=360
+    if ha>270: ha-=360
+
+    haW=ha+180
+    if haW>270: haW-=360
+    decW=-180-dec
+
+    fig=plt.figure()
+    ax1 = fig.add_subplot(111)
+    ax1.plot(eastLim[:,0],eastLim[:,1],'b-')
+    ax1.plot(westLim[:,0],westLim[:,1],'r-')
+    ax1.plot(ha,dec,'bo')
+    ax1.plot(haW,decW,'ro')
+    ax1.set_xlim(-90,270)
+    ax1.set_ylim(-240,60)
+    ax1.hlines(-90, -90, 270, colors='k',linestyles=':')
+
+    ax1.xaxis.set_ticks(range(-90,270+1,30),[str(int(round(i/15))) for i in range(-90-180,270-180+1,30)])
+    ax1.set_xlabel('West position - Hour angle (hours)')
+
+    ax2 = ax1.twiny()
+    ax2.set_xlim(-90,270)
+    ax2.xaxis.set_ticks(range(-90,270+1,30),[str(int(round(i/15))) for i in range(-90,270+1,30)])
+    ax2.set_xlabel('East position - Hour angle (hours)')
+
+    ax1.yaxis.set_ticks(range(-240,60+1,30),[str(i) if i>=-90 else str(-i-180) for i in range(-240,60+1,30)])
+    ax1.set_ylabel('Declination (deg)')
+    ax1.text(220, -70, 'east', color='blue')
+    ax1.text(220, -110, 'west', color='red')
+    plt.tight_layout()
+    
+    buf=io.BytesIO()
+    plt.savefig(buf,format='png',dpi=150)
+    plt.close()
+    buf.seek(0)
+    #load result from buffer to html output
+    plot = base64.b64encode(buf.getvalue()).decode('utf8')
+    buf.close()
+    
+    return plot
+
+@app.route("/plot_limits", methods=['GET'])
+def plot_limits():
+    '''plot east/west telescope limits from hour angle and dec'''
+    ha=float(request.args.get('ha'))
+    dec=float(request.args.get('dec'))
+        
+    return render_template('image.html',image=plotLim(ha,dec)) 
+
+
+@app.route('/limits',methods=['GET','POST'])
+def limits():
+    if request.method == 'POST':
+        date=request.form['date']
+        time=request.form['time']
+        
+        sign = lambda x: -1 if x < 0 else 1
+        ra=[float(x) for x in request.form['ra'].replace(':',' ').split()]
+        ra=sign(ra[0])*(abs(ra[0])+ra[1]/60+ra[2]/3600)*15
+        
+        dec=[float(x) for x in request.form['dec'].replace(':',' ').split()]
+        dec=sign(dec[0])*(abs(dec[0])+dec[1]/60+dec[2]/3600)
+        
+        dt=Time(date+' '+time)
+        
+        lst=dt.sidereal_time('mean',obs_lon*u.deg).degree
+        
+        ha=(lst-ra)%(360)
+        
+        if ha<-90: ha+=360
+        if ha>270: ha-=360
+            
+        haW=ha+180
+        if haW>270: haW-=360
+        decW=-180-dec
+        
+        if PathE.contains_point((ha,dec)):
+            i=np.where(eastLim[:,0]>ha)[0]
+            j=np.argmin(np.abs(eastLim[i,1]-dec))
+            try:
+                f = interpolate.interp1d(eastLim[i,1],eastLim[i,0])
+                east=float((f(dec)-ha)/15)
+            except: east=(eastLim[i[j],0]-ha)/15
+        else: east=0
+        
+        if PathW.contains_point((haW,decW)):
+            i=np.where(westLim[:,0]>haW)[0]
+            j=np.argmin(np.abs(westLim[i,1]-decW))
+            try:
+                f = interpolate.interp1d(westLim[i,1],westLim[i,0])
+                west=float((f(decW)-haW)/15)
+            except: west=(westLim[i[j],0]-haW)/15   
+        else: west=0     
+        
+        return render_template('limits.html',ra=request.form['ra'],dec=request.form['dec'],date=date,time=time,plot=plotLim(ha,dec),east=east,west=west)
+    
+    return render_template('limits.html',ra='',dec='',date='',time='')
 
 
 if __name__ == '__main__':
