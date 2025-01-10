@@ -97,7 +97,10 @@
             <label style="display: inline;">DEC</label> {{ condi['DEC'] }}
             <br>
             <label style="display: inline;">Telescope position</label> {{ condi['pos'] }}&nbsp;&nbsp;
-            <label style="display: inline;">Track distance</label> {{ condi['limit'] | round(1) }} hours
+            <label style="display: inline;">Track distance</label>
+            <span {% if condi['limit']<0.5 %}class="limit" {% elif condi['limit']<0.75 %}class="warning" {% endif
+                %}>{{ condi['limit'] | round(1) }} hours
+            </span>
             <br><br>
 
             <label>Offsets (arcsec)</label>
@@ -169,14 +172,12 @@
             </span>
             <br>
             <label style="display: inline;">Astro. twilight</label>
-            <span {% if condi['astro-dt']<0.5 %}class="limit"{%
-                elif condi['astro-dt']<1 %}class="warning"{% endif %}>
+            <span {% if condi['astro-dt']<0.5 %}class="limit" {% elif condi['astro-dt']<1 %}class="warning" {% endif %}>
                 {{ condi['astro'] }} (in {{ condi['astro-dt'] | round(1) }} hours)
             </span>
             &nbsp;&nbsp;
             <label style="display: inline;">Sunrise</label>
-            <span {% if condi['rise-dt']<0.5 %}class="limit"{%
-                elif condi['rise-dt']<1 %}class="warning"{% endif %}>
+            <span {% if condi['rise-dt']<0.5 %}class="limit" {% elif condi['rise-dt']<1 %}class="warning" {% endif %}>
                 {{ condi['rise'] }} (in {{ condi['rise-dt'] | round(1) }} hours)
             </span>
             <br>

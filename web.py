@@ -506,15 +506,19 @@ def guiderInfo(name):
         limit=westLim
     
     #estimate time to limits
-    ha=header['TELHA']
-    da=header['TELDA']
+    try:
+        ha=float(header['TELHA'])
+        da=float(header['TELDA'])
+    except ValueError: 
+        info['limit']=-1
+        return info
     
     i=np.where(limit[:,0]>ha)[0]
-    j=np.argmin(np.abs(da-limit[i,1]))
+    j=np.argmin(np.abs(limit[i,1]-da))
     try:
         f = interpolate.interp1d(limit[i,1],limit[i,0])
-        info['limit']=float((ha-f(da))/15)
-    except: info['limit']=(ha-limit[i[j],0])/15
+        info['limit']=float((f(da)-ha)/15)
+    except: info['limit']=(limit[i[j],0]-ha)/15
 
     return info
 
