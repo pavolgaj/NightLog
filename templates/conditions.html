@@ -58,6 +58,26 @@
                 border: 5px solid red;
                 background-color: yellow;
             }
+
+            .modify-row {
+                padding: 0px;
+                width: 25px;
+                height: 25px;
+                background-color: silver;
+                border-color: black;
+                border-width: 1px;
+                border-radius: 5px;
+                margin-right: 2px;
+            }
+
+            .modify-row img {
+                height: 17px;
+                width: 17px;
+                margin-top: 0px;
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+            }
         </style>
         <script>
             function WindDir(wd) {
@@ -101,6 +121,14 @@
             <span {% if condi['limit']<0.5 %}class="limit" {% elif condi['limit']<0.75 %}class="warning" {% endif
                 %}>{{ condi['limit'] | round(1) }} hours
             </span>
+            &nbsp;
+            {% if 'ha' in condi %}
+            <button type="button" class="modify-row" name="plot" title="Plot telescope limits"
+                onclick="window.open('{{ url_for('plot_limits', ha = condi['ha'], dec=condi['de']) }}', '_blank')"
+                formtarget=”_blank”>
+                <img src="{{ url_for('static',filename='preview.svg') }}" alt="preview">
+            </button>
+            {% endif %}
             <br><br>
 
             <label>Offsets (arcsec)</label>
