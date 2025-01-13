@@ -113,8 +113,19 @@
         <!-- telescope status -->
         <div class="data">
             <label style="display: inline;">RA</label> {{ condi['RA'] }}
-            <br>
+            &nbsp;&nbsp;
             <label style="display: inline;">DEC</label> {{ condi['DEC'] }}
+            <br>
+            <label style="display: inline;">Azm</label> {{ condi['azm'] | round(1) }}&deg;
+            (<span id="azm"></span>)
+            <script>
+                var azm = WindDir({{ condi['azm'] }});
+                document.getElementById("azm").textContent = azm;
+            </script>
+            &nbsp;&nbsp;
+            <label style="display: inline;">Alt</label> {{ condi['alt'] | round(1) }}&deg;
+            &nbsp;&nbsp;
+            <label style="display: inline;">Airmass</label> {{ condi['airmass'] | round(3) }}
             <br>
             <label style="display: inline;">Telescope position</label> {{ condi['pos'] }}&nbsp;&nbsp;
             <label style="display: inline;">Track distance</label>

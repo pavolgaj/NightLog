@@ -9,14 +9,17 @@ import datetime
 import base64
 import io
 
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import matplotlib.path as mplPath
+
 from fwhm import *
 from snr import SNR
 
-from astropy.coordinates import get_sun, AltAz, EarthLocation
+from astropy.coordinates import get_sun, AltAz, EarthLocation, SkyCoord
 from astropy.time import Time, TimeDelta
 import astropy.units as u
-import matplotlib.pyplot as plt
-import matplotlib.path as mplPath
 from scipy import interpolate
 
 import logging
@@ -489,6 +492,20 @@ def guiderInfo(name):
     info['user-offset_DEC']=header['TELUODEC']
     info['guider-offset_RA']=header['TELAORA']
     info['guider-offset_DEC']=header['TELAODEC']
+    
+    loc=EarthLocation(lon=float(header['LONGITUD'])*u.deg, lat=float(header['LATITUDE'])*u.deg, height=float(header['HEIGHT'])*u.meter)
+    dt=Time(info['date']+' '+info['time'])
+    
+    altazCoor=AltAz(location=loc,obstime=dt)
+    ra='{}h{}m{}s'.format(*info['RA'].replace(':',' ').replace(',','.').split())
+    dec='{}d{}m{}s'.format(*info['DEC'].replace(':',' ').replace(',','.').split())
+    coord=SkyCoord(ra,dec)
+    
+    altaz=coord.transform_to(altazCoor)
+    
+    info['alt']=altaz.alt.degree
+    info['azm']=altaz.az.degree
+    info['airmass']=float(altaz.secz)
 
     #weather info
     info['temp']=header['OCTEMP']
