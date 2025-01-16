@@ -8,6 +8,7 @@ import hashlib
 import datetime
 import base64
 import io
+import time
 
 import matplotlib
 matplotlib.use('Agg')
@@ -116,6 +117,9 @@ def main():
         json.dump(notes,f)
         f.close()
         os.chmod('notes/'+obs+'.json', 0o666)
+        
+    if 'timestamp' in notes: ts0=notes['timestamp']
+    else: ts0=0
 
     #list all files + split path and name
     files = {x: os.path.splitext(os.path.basename(x))[0] for x in sorted(glob.glob(path+'*.fits'))[::-1]}
@@ -187,6 +191,7 @@ def main():
                 exp[f]=''
 
     if request.method == 'POST':
+        notes0=dict(notes)
         #get data from form
         for x in request.form:
             #get all individual notes
@@ -195,10 +200,23 @@ def main():
         notes['general']=request.form['general']
 
         if not request.form['path']==path: notes={}
-
-        if 'save' in request.form:
-            notes1={}
+        
+        if 'timestamp' in session: ts=session.get('timestamp')
+        else: ts=0
+        
+        #load saved notes to web
+        if ts0>ts:
             for x in notes:
+                if x=='timestamp': continue
+                if x in notes0:
+                    if len(notes0[x])>len(notes[x]): notes[x]=notes0[x]
+
+        ts=time.time()
+        session['timestamp'] = ts
+        if 'save' in request.form:            
+            notes1={'timestamp':ts}            
+            for x in notes:
+                if x=='timestamp': continue
                 #remove empty notes
                 if len(notes[x])>0: notes1[x]=notes[x]
             f=open('notes/'+obs+'.json','w')
