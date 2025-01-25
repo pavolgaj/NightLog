@@ -153,7 +153,7 @@
             <div class="form-group">
                 <label for="{{ path }}" style="flex: 12; max-width: 60%;">{{ name }}</label>
                 <label class="exp">{% if exp[path] is number %}{{ exp[path] | round | int }}{% endif %}</label>
-                <label class="exp">{{ sim[path] }}</label>
+                <label class="exp" {% if sim[path]=="err" %}style="box-sizing: border-box; text-align: center; width: 3em; border: 5px solid red;background-color: yellow;"{% endif %}>{{ sim[path] }}</label>
                 {%if ic[path] %}
                 <img class="ic" src="{% if ic[path]=='yes' %}{{ url_for('static',filename='yes.svg') }}{% elif ic[path]=='no' %}{{ url_for('static',filename='no.svg') }}{% else %}{{ url_for('static',filename='err.svg') }}{% endif %}" alt="ic">
                 {% else %}

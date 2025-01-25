@@ -83,6 +83,8 @@ if __name__ == "__main__":
 
     mpl.figure()
     mpl.plot(center)
+    mpl.xlabel('pixel')
+    mpl.ylabel('intensity value')
     if points>0: mpl.plot(bg)
     else: mpl.hlines(bg,xmin=0,xmax=len(center),colors='red')
 
