@@ -128,7 +128,7 @@
                 <label class="exp">{% if exp[path] is number %}{{ exp[path] | round | int }}{% endif %}</label>
                 <label class="exp" {% if sim[path]=="err" %}style="box-sizing: border-box; text-align: center; width: 3em; border: 5px solid red;background-color: yellow;"{% endif %}>{{ sim[path] }}</label>
                 {%if ic[path] %}
-                <img class="ic" src="{% if ic[path]=='yes' %}{{ url_for('static',filename='yes.svg') }}{% elif ic[path]=='no' %}{{ url_for('static',filename='no.svg') }}{% else %}{{ url_for('static',filename='err.svg') }}{% endif %}" alt="ic">
+                <img class="ic" src="{% if ic[path]=='yes' %}{{ url_for('static',filename='yes.svg') }}{% elif ic[path]=='no' %}{{ url_for('static',filename='no.svg') }}{% else %}{{ url_for('static',filename='err.svg') }}{% endif %}" {% if ic[path]=='err' %}style="border: 5px solid red;"{% endif %}  alt="ic">
                 {% else %}
                 <label class="ic"></label>
                 {% endif %}
