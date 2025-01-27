@@ -62,6 +62,7 @@ exp={}
 sim={}
 oldsnr=''
 
+
 @app.route("/", methods=['GET', 'POST'])
 def main():
     global snr,oldsnr,ic,exp,sim
@@ -117,7 +118,7 @@ def main():
         json.dump(notes,f)
         f.close()
         os.chmod('notes/'+obs+'.json', 0o666)
-        
+
     if 'timestamp' in notes: ts0=notes['timestamp']
     else: ts0=0
 
@@ -200,10 +201,10 @@ def main():
         notes['general']=request.form['general']
 
         if not request.form['path']==path: notes={}
-        
+
         if 'timestamp' in session: ts=session.get('timestamp')
         else: ts=0
-        
+
         #load saved notes to web
         if ts0>ts:
             for x in notes:
@@ -213,8 +214,8 @@ def main():
 
         ts=time.time()
         session['timestamp'] = ts
-        if 'save' in request.form:            
-            notes1={'timestamp':ts}            
+        if 'save' in request.form:
+            notes1={'timestamp':ts}
             for x in notes:
                 if x=='timestamp': continue
                 #remove empty notes
@@ -510,17 +511,17 @@ def guiderInfo(name):
     info['user-offset_DEC']=header['TELUODEC']
     info['guider-offset_RA']=header['TELAORA']
     info['guider-offset_DEC']=header['TELAODEC']
-    
+
     loc=EarthLocation(lon=float(header['LONGITUD'])*u.deg, lat=float(header['LATITUDE'])*u.deg, height=float(header['HEIGHT'])*u.meter)
     dt=Time(info['date']+' '+info['time'])
-    
+
     altazCoor=AltAz(location=loc,obstime=dt)
     ra='{}h{}m{}s'.format(*info['RA'].replace(':',' ').replace(',','.').split())
     dec='{}d{}m{}s'.format(*info['DEC'].replace(':',' ').replace(',','.').split())
     coord=SkyCoord(ra,dec)
-    
+
     altaz=coord.transform_to(altazCoor)
-    
+
     info['alt']=altaz.alt.degree
     info['azm']=altaz.az.degree
     info['airmass']=float(altaz.secz)
@@ -542,29 +543,30 @@ def guiderInfo(name):
     info['astro-dt']=(astro-Time(info['date']+' '+info['time'])).sec/3600
     info['rise']=rise.strftime('%H:%M')
     info['rise-dt']=(rise-Time(info['date']+' '+info['time'])).sec/3600
-    
-    if header['TELPOS']==0: 
+
+    if header['TELPOS']==0:
         info['pos']='East'
         limit=eastLim
-    else: 
+    else:
         info['pos']='West'
         limit=westLim
-    
+
     #estimate time to limits
     try:
         ha=float(header['TELHA'])
         da=float(header['TELDA'])
-        if header['TELPOS']==0:  
+        if header['TELPOS']==0:
             info['ha']=ha
             info['de']=da
-        else: 
+            i=np.where((limit[:,0]>ha)*(limit[:,0]>5))[0]    #use only right part of limit
+        else:
             info['ha']=ha-180
             info['de']=-180-da
-    except ValueError: 
+            i=np.where((limit[:,0]>ha)*(limit[:,0]>180))[0]
+    except ValueError:
         info['limit']=-1
         return info
-    
-    i=np.where(limit[:,0]>ha)[0]
+
     j=np.argmin(np.abs(limit[i,1]-da))
     try:
         f = interpolate.interp1d(limit[i,1],limit[i,0])
@@ -714,7 +716,7 @@ def plotLim(ha,dec):
     ax1.text(220, -70, 'east', color='blue')
     ax1.text(220, -110, 'west', color='red')
     plt.tight_layout()
-    
+
     buf=io.BytesIO()
     plt.savefig(buf,format='png',dpi=150)
     plt.close()
@@ -722,7 +724,7 @@ def plotLim(ha,dec):
     #load result from buffer to html output
     plot = base64.b64encode(buf.getvalue()).decode('utf8')
     buf.close()
-    
+
     return plot
 
 @app.route("/plot_limits", methods=['GET'])
@@ -730,8 +732,8 @@ def plot_limits():
     '''plot east/west telescope limits from hour angle and dec'''
     ha=float(request.args.get('ha'))
     dec=float(request.args.get('dec'))
-        
-    return render_template('image.html',image=plotLim(ha,dec)) 
+
+    return render_template('image.html',image=plotLim(ha,dec))
 
 
 @app.route('/limits',methods=['GET','POST'])
@@ -739,47 +741,47 @@ def limits():
     if request.method == 'POST':
         date=request.form['date']
         time=request.form['time']
-        
+
         sign = lambda x: -1 if x < 0 else 1
         ra=[float(x) for x in request.form['ra'].replace(':',' ').split()]
         ra=sign(ra[0])*(abs(ra[0])+ra[1]/60+ra[2]/3600)*15
-        
+
         dec=[float(x) for x in request.form['dec'].replace(':',' ').split()]
         dec=sign(dec[0])*(abs(dec[0])+dec[1]/60+dec[2]/3600)
-        
+
         dt=Time(date+' '+time)
-        
+
         lst=dt.sidereal_time('mean',obs_lon*u.deg).degree
-        
+
         ha=(lst-ra)%(360)
-        
+
         if ha<-90: ha+=360
         if ha>270: ha-=360
-            
+
         haW=ha+180
         if haW>270: haW-=360
         decW=-180-dec
-        
+
         if PathE.contains_point((ha,dec)):
-            i=np.where(eastLim[:,0]>ha)[0]
+            i=np.where((eastLim[:,0]>ha)*(eastLim[:,0]>5))[0]       #use only right part of limit
             j=np.argmin(np.abs(eastLim[i,1]-dec))
             try:
                 f = interpolate.interp1d(eastLim[i,1],eastLim[i,0])
                 east=float((f(dec)-ha)/15)
             except: east=(eastLim[i[j],0]-ha)/15
         else: east=0
-        
+
         if PathW.contains_point((haW,decW)):
-            i=np.where(westLim[:,0]>haW)[0]
+            i=np.where((westLim[:,0]>haW)*(westLim[:,0]>180))[0]   #use only right part of limit
             j=np.argmin(np.abs(westLim[i,1]-decW))
             try:
                 f = interpolate.interp1d(westLim[i,1],westLim[i,0])
                 west=float((f(decW)-haW)/15)
-            except: west=(westLim[i[j],0]-haW)/15   
-        else: west=0     
-        
+            except: west=(westLim[i[j],0]-haW)/15
+        else: west=0
+
         return render_template('limits.html',ra=request.form['ra'],dec=request.form['dec'],date=date,time=time,plot=plotLim(ha,dec),east=east,west=west)
-    
+
     return render_template('limits.html',ra='',dec='',date='',time='')
 
 
