@@ -118,13 +118,13 @@
             <div>
                 <label for="general"><b>General notes</b>
                 </label>
-                <textarea id="general" name="general">{{ notes['general'] }}</textarea>
+                <textarea id="general" name="general" placeholder="General notes related to observation (e.g. technical problems, parameters of photometry)" title="General notes related to observation">{{ notes['general'] }}</textarea>
             </div>
             <br>
             <div>
                 <label for="meteo"><b>Meteo notes</b>
                 </label>
-                <textarea id="meteo" name="meteo">{{ notes['meteo'] }}</textarea>
+                <textarea id="meteo" name="meteo" placeholder="Notes about weather conditions (e.g. clouds, bad seeing)" title="Notes about weather conditions">{{ notes['meteo'] }}</textarea>
             </div>
             <br>
             {% if saved %}
@@ -165,7 +165,7 @@
                 {% elif snr[path]<10 %}border: 5px solid darkorange;background-color: yellow;
                 {% endif %}
                 {% endif %}">{% if snr[path] is number %}{{ snr[path] | round | int }}{% endif %}</label>
-                <input style="margin-left: 0.5em;" type="text" id="{{ path }}" name="{{ path }}" value="{{ notes[path] }}">
+                <input style="margin-left: 0.5em;" type="text" id="{{ path }}" name="{{ path }}" value="{{ notes[path] }}" placeholder="individual notes">
             </div>
             {% endfor %}
             {% if not files %}
