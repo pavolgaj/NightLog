@@ -88,13 +88,13 @@
             <div>
                 <label for="general"><b>General notes</b>
                 </label>
-                <textarea id="general" name="general" placeholder="General notes related to observation (e.g. technical problems, parameters of photometry)">{{ notes['general'] }}</textarea>
+                <textarea id="general" name="general" placeholder="General notes related to observation (e.g. technical problems, parameters of photometry)" title="General notes related to observation (e.g. technical problems, parameters of photometry)">{{ notes['general'] }}</textarea>
             </div>
             <br>
             <div>
                 <label for="meteo"><b>Meteo notes</b>
                 </label>
-                <textarea id="meteo" name="meteo" placeholder="Notes about weather conditions (e.g. clouds, bad seeing)">{{ notes['meteo'] }}</textarea>
+                <textarea id="meteo" name="meteo" placeholder="Notes about weather conditions (e.g. clouds, bad seeing)" title="Notes about weather conditions (e.g. clouds, bad seeing)">{{ notes['meteo'] }}</textarea>
             </div>
             <br>
             {% if saved %}
