@@ -153,11 +153,22 @@
         </form>
         <script>
             // Function to submit the form
-            function submitForm() {
-                document.getElementById('mainForm').submit();
+            // function submitForm() {
+            //     document.getElementById('mainForm').submit();
+            // }
+            async function safeSubmitForm() {
+                try {
+                    // Try to fetch a lightweight resource from the server
+                    const response = await fetch(window.location.href, { method: 'HEAD', cache: 'no-store' });
+
+                    if (response.ok) {
+                        document.getElementById('mainForm').submit();
+                    } 
+                } catch (error) { }
             }
+            
             // Automatically submit the form every 1 minute (60000 milliseconds)
-            setInterval(submitForm, 60000);
+            setInterval(safeSubmitForm, 60000);
         </script>
     </body>
 
