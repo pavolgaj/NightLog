@@ -252,9 +252,22 @@
 
         <script>
             // This script will reload the page every 60 seconds (60000 milliseconds)
-            setTimeout(function () {
-                window.location.reload();
-            }, 60000); // 60 seconds
+            // setTimeout(function () {
+            //     window.location.reload();
+            // }, 60000); // 60 seconds            
+            
+            async function safeReload() {
+                try {
+                    // Try to fetch a lightweight resource from the server
+                    const response = await fetch(window.location.href, { method: 'HEAD', cache: 'no-store' });
+
+                    if (response.ok) {
+                        window.location.reload();
+                    } 
+                } catch (error) { }
+            }
+            
+            setInterval(safeReload, 60000);  // 60 seconds
         </script>
 
         {% if plots %}
