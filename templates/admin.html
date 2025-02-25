@@ -151,7 +151,7 @@
             {% for path, name in files.items() %}
             <!-- list all files in dir -->
             <div class="form-group">
-                <label for="{{ path }}" style="flex: 12; max-width: 60%;">{{ name }}</label>
+                <label for="{{ path }}" style="flex: 12; max-width: 60%;">{{ name }}{{ postfix[path] }}</label>
                 <label class="exp">{% if exp[path] is number %}{{ exp[path] | round | int }}{% endif %}</label>
                 <label class="exp" {% if sim[path]=="err" %}style="border: 5px solid red;background-color: yellow;"{% endif %}>{{ sim[path] }}</label>
                 {%if ic[path] %}

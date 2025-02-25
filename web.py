@@ -60,12 +60,13 @@ snr={}  #store calculated snrs
 ic={}
 exp={}
 sim={}
+postfix={}
 oldsnr=''
 
 
 @app.route("/", methods=['GET', 'POST'])
 def main():
-    global snr,oldsnr,ic,exp,sim
+    global snr,oldsnr,ic,exp,sim,postfix
     '''adding notes to current obs.'''
     #if not session.get('logged_in'):
     #    return redirect(url_for('login', next='main'))
@@ -83,6 +84,7 @@ def main():
         ic={}
         exp={}
         sim={}
+        postfix={}
 
     #get the latest log
     if len(glob.glob('logs/*_log.pdf'))>0:
@@ -182,6 +184,14 @@ def main():
                         else: sim[f]='err'
                     #else: sim[f]='off'
                 else: sim[f]=''
+                
+                if 'OBJECT' in header:
+                    if 'flat' in header['OBJECT'] or 'comp' in header['OBJECT']:
+                        if '_' in header['OBJECT']: postfix[f]=' ('+header['OBJECT'].split('_')[1]+')'
+                        else: postfix[f]=' (all)'
+                    else: postfix[f]=''
+                else: postfix[f]=''
+                
 
                 exp[f]=int(round(header['EXPOSURE']))
 
@@ -190,6 +200,7 @@ def main():
                 ic[f]=''
                 sim[f]=''
                 exp[f]=''
+                postfix[f]=''
 
     if request.method == 'POST':
         notes0=dict(notes)
@@ -227,7 +238,7 @@ def main():
 
             saved=True
 
-    return render_template('index.html',files=files,path=path,notes=notes,saved=saved,snr=snr,ic=ic,exp=exp,sim=sim)
+    return render_template('index.html',files=files,path=path,notes=notes,saved=saved,snr=snr,ic=ic,exp=exp,sim=sim,postfix=postfix)
 
 @app.route('/logs', methods=['GET', 'POST'])
 def logs():
@@ -354,6 +365,7 @@ def admin():
     ics={}
     simc={}
     exps={}
+    post={}
     for f in files:
         try:
             hdu=fits.open(f)[0]
@@ -410,13 +422,22 @@ def admin():
                     else: simc[f]='err'
                 #else: simc[f]='off'
             else: simc[f]=''
+            
+            if 'OBJECT' in header:
+                if 'flat' in header['OBJECT'] or 'comp' in header['OBJECT']:
+                    if '_' in header['OBJECT']: post[f]=' ('+header['OBJECT'].split('_')[1]+')'
+                    else: post[f]=' (all)'
+                else: post[f]=''
+            else: post[f]=''
 
             exps[f]=int(round(header['EXPOSURE']))
         except:
             sn[f]=''
             ics[f]=''
+			post[f]=''
+			exps[f]=''
 
-    return render_template('admin.html',files=files,path=path,notes=notes,night=obs,saved=saved,snr=sn,ic=ics,exp=exps,sim=simc)
+    return render_template('admin.html',files=files,path=path,notes=notes,night=obs,saved=saved,snr=sn,ic=ics,exp=exps,sim=simc,postfix=post)
 
 def load_limits():
     '''load and process limits'''
