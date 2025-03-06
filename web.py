@@ -24,6 +24,7 @@ import astropy.units as u
 from scipy import interpolate
 
 import logging
+import gc
 
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -68,6 +69,8 @@ oldsnr=''
 def main():
     global snr,oldsnr,ic,exp,sim,postfix
     '''adding notes to current obs.'''
+    
+    gc.collect()
     #if not session.get('logged_in'):
     #    return redirect(url_for('login', next='main'))
 
@@ -245,7 +248,8 @@ def logs():
     '''show generated log files'''
     #if not session.get('logged_in'):
     #    return redirect(url_for('login', next='logs'))
-
+    gc.collect()
+    
     directory = "./logs"
     file_extension=".pdf"
     error=''
@@ -293,7 +297,8 @@ def login():
             else: return redirect(url_for(request.args.get('next')))  #redirect to wanted page
         else:
             flash('Incorrect password. Please try again.')
-
+    gc.collect()
+    
     return render_template('login.html')
 
 @app.route('/admin', methods=['GET', 'POST'])
@@ -303,7 +308,9 @@ def admin():
         return redirect(url_for('login', next='admin'))
     if not session.get('logged_in')=='admin':
         return redirect(url_for('login', next='admin'))
-
+    
+    gc.collect()
+    
     notes={}
     saved=False
 
@@ -434,8 +441,8 @@ def admin():
         except:
             sn[f]=''
             ics[f]=''
-			post[f]=''
-			exps[f]=''
+            post[f]=''
+            exps[f]=''
 
     return render_template('admin.html',files=files,path=path,notes=notes,night=obs,saved=saved,snr=sn,ic=ics,exp=exps,sim=simc,postfix=post)
 
@@ -504,7 +511,8 @@ def guiderInfo(name):
     ''''read info from guider header'''
     #fits header -> OCHUM, OCWINDD, OCWINDS, OCTEMP, OCPGM
     info={}
-
+    gc.collect()
+    
     try:
         hdu=fits.open(name)[0]
         header=hdu.header
@@ -594,6 +602,7 @@ def guiderInfo(name):
         info['limit']=float((f(da)-ha)/15)
     except: info['limit']=(limit[i[j],0]-ha)/15
 
+    gc.collect()
     return info
 
 history=[] #store old conditions values
@@ -604,7 +613,8 @@ lastname=''
 def conditions():
     '''show current weather and obs. conditions -> based on guider image'''
     global history,olddate,lastname
-
+    gc.collect()
+    
     try:
         #date -> from folder name
         if len(glob.glob(path0+'20*/'))>0:
