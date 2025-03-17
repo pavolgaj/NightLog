@@ -761,8 +761,11 @@ def plotLim(ha,dec):
 @app.route("/plot_limits", methods=['GET'])
 def plot_limits():
     '''plot east/west telescope limits from hour angle and dec'''
-    ha=float(request.args.get('ha'))
-    dec=float(request.args.get('dec'))
+    try:
+        ha=float(request.args.get('ha'))
+        dec=float(request.args.get('dec'))
+    except TypeError:
+        return 'Incorrect format of input parameters!'
 
     return render_template('image.html',image=plotLim(ha,dec))
 
