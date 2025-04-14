@@ -322,7 +322,14 @@ if len(data0)>0:
 
         f=open('fwhm/'+date+'_fwhm.dat','w')
         f.write('# date      time      FWHM_X(px)      FWHM_Y(px)      FWHM_X(arcsec)      FWHM_Y(arcsec)\n')
-        for name in sorted(glob.glob(path+'y'+date_guider.strftime("%Y%m%d")+'*.fit')):
+        
+        #use every n-th image to speed-up fwhm calculation
+        files=list(sorted(glob.glob(path+'y'+date_guider.strftime("%Y%m%d")+'*.fit')))
+        n=1
+        nMax=4000
+        while len(files[::n])>nMax: n+=1       
+        
+        for name in files[::n]:
             #analyze all guider images
             dt,px_x,px_y=fwhm(name)
             if len(px_x)*len(px_y)==0: continue
