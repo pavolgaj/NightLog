@@ -11,6 +11,7 @@ import PDFReportClass as pdf
 import datetime
 from fwhm import *
 from snr import SNR
+import csv
 
 
 def header(name):
@@ -260,7 +261,11 @@ if len(sys.argv)>1:
     folder=sys.argv[1]
 
 if not folder[-1]=='/': folder+='/'
+
+#date of report
 date=folder.strip().split('/')[-2]
+if date=='.': date=''
+year=date.split('-')[0]
 
 #load notes form json
 notes_all={}
@@ -270,9 +275,30 @@ if os.path.isfile('notes/'+date+'.json'):
     f.close()
 
 #load general and meteo notes -> modify newlines
-if 'general' in notes_all: gen_notes=notes_all['general'].replace('\n','<br />\n')
+if not os.path.isfile('logs/general-'+year+'.csv'):
+    f=open('year/meteo-'+year+'.csv','w')
+    f.write('night,notes\n')
+    f.close()
+
+    f=open('year/general-'+year+'.csv','w')
+    f.write('night,notes\n')
+    f.close()
+
+if 'general' in notes_all: 
+    gen_notes=notes_all['general'].replace('\n','<br />\n')
+    if len(notes_all['general'].strip())>0:
+        f=open('logs/general-'+year+'.csv','a')
+        writer = csv.writer(f)
+        writer.writerow([date,notes_all['general'].replace('\r\n','; ').replace('\n','; ')])
+        f.close()
 else: gen_notes=''
-if 'meteo' in notes_all: meteo_notes=notes_all['meteo'].replace('\n','<br />\n')
+if 'meteo' in notes_all: 
+    meteo_notes=notes_all['meteo'].replace('\n','<br />\n')
+    if len(notes_all['meteo'].strip())>0:
+        f=open('logs/meteo-'+year+'.csv','a')
+        writer = csv.writer(f)
+        writer.writerow([date,notes_all['meteo'].replace('\r\n','; ').replace('\n','; ')])
+        f.close()
 else: meteo_notes=''
 
 #load fits file and read header
