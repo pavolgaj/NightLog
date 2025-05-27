@@ -110,7 +110,7 @@
             </center>
             <center>
                 <h2>Files in Directory: {{ path }}</h2>
-                <!-- remeber old folder name -->
+                <!-- remember old folder name -->
                 <input type="hidden" id="path" name="path" value="{{path}}">
             </center>
             <div class="form-group">
@@ -121,12 +121,22 @@
                 <label style="width:4em;"><b>SNR</b></label>
                 <label style="flex: 4; margin-left: 0.5em;"><b>Notes</b></label>
             </div>
+            <script>
+                var ThArErr=false;
+            </script>
             {% for path, name in files.items() %}
             <!-- list all files in dir -->
             <div class="form-group">
                 <label for="{{ path }}" style="flex: 12; max-width: 60%;">{{ name }}{{ postfix[path] }}</label>
                 <label class="exp">{% if exp[path] is number %}{{ exp[path] | round | int }}{% endif %}</label>
-                <label class="exp" {% if sim[path]=="err" %}style="border: 5px solid red;background-color: yellow;"{% endif %}>{{ sim[path] }}</label>
+                {% if "-ThArErr" in sim[path] %}
+                    <label class="exp" style="border: 5px solid red;background-color: yellow;">{{ sim[path][:-8] }}</label>
+                    <script>
+                        ThArErr=true;    
+                    </script>
+                {% else %}
+                    <label class="exp" {% if sim[path]=="err" %}style="border: 5px solid red;background-color: yellow;"{% endif %}>{{ sim[path] }}</label>
+                {% endif %}
                 {%if ic[path] %}
                 <img class="ic" src="{% if ic[path]=='yes' %}{{ url_for('static',filename='yes.svg') }}{% elif ic[path]=='no' %}{{ url_for('static',filename='no.svg') }}{% else %}{{ url_for('static',filename='err.svg') }}{% endif %}" {% if ic[path]=='err' %}style="border: 5px solid red;background-color: yellow;"{% endif %} alt="ic">
                 {% else %}
@@ -147,10 +157,29 @@
                 directory.</label>
             {% endif %}
             <br>
+
             <center>
-                <button type="submit" name="save" title="Save">Save</button>
+                <button type="submit" name="save" id="save" title="Save">Save</button>
+                <!-- hidden button to save notes with ThAr voltage warning -->
+                <button type="submit" name="saveThAr" id="saveThAr" title="SaveThAR" style="display: none;">SaveThAr</button>  
             </center>
         </form>
+
+        <script>
+            // add note and save it
+            if (ThArErr) {
+                const general = document.getElementById("general");
+                const text = general.value;
+
+                if (!text.includes("ThAr lamp high voltage!!!")) {
+                    // Add a new line if there is existing text
+                    general.value = text + (text ? "\n" : "") + "ThAr lamp high voltage!!!\n";
+
+                    document.getElementById('saveThAr').click();
+                }
+            }
+        </script>
+
         <script>
             // Function to submit the form
             // function submitForm() {

@@ -52,6 +52,8 @@ guider_res=0.134    #resolution arcsec/px
 
 obs_lon=-70.739     #longitude of observatory
 
+tharMax=200   # limit voltage for ThAr lamp -> broken!
+
 #configure for logger
 logHandler=logging.FileHandler('errors.log')
 logHandler.setLevel(logging.DEBUG)
@@ -126,6 +128,8 @@ def main():
 
     if 'timestamp' in notes: ts0=notes['timestamp']
     else: ts0=0
+    ts=0
+    
 
     #list all files + split path and name
     files = {x: os.path.splitext(os.path.basename(x))[0] for x in sorted(glob.glob(path+'*.fits'))[::-1]}
@@ -185,6 +189,11 @@ def main():
                         elif flat and not (comp or ic_lamp): sim[f]='flat'
                         elif (not flat) and (not comp) and (not ic_lamp): sim[f]='off'
                         else: sim[f]='err'
+                        
+                    if compU>tharMax:
+                        #broken lamp!
+                        sim[f]+='-ThArErr'
+                        
                     #else: sim[f]='off'
                 else: sim[f]=''
                 
@@ -211,11 +220,11 @@ def main():
         for x in request.form:
             #get all individual notes
             if 'fits' in x: notes[x]=request.form[x]
-        notes['meteo']=request.form['meteo']
-        notes['general']=request.form['general']
 
         if not request.form['path']==path: notes={}
-
+        notes['meteo']=request.form['meteo']
+        notes['general']=request.form['general']
+        
         if 'timestamp' in session: ts=session.get('timestamp')
         else: ts=0
 
@@ -228,7 +237,7 @@ def main():
 
         ts=time.time()
         session['timestamp'] = ts
-        if 'save' in request.form:
+        if 'save' in request.form or 'saveThAr' in request.form:
             notes1={'timestamp':ts}
             for x in notes:
                 if x=='timestamp': continue
@@ -239,7 +248,7 @@ def main():
             f.close()
             os.chmod('notes/'+obs+'.json', 0o666)
 
-            saved=True
+            if 'save' in request.form: saved=True
 
     return render_template('index.html',files=files,path=path,notes=notes,saved=saved,snr=snr,ic=ic,exp=exp,sim=sim,postfix=postfix)
 
@@ -433,6 +442,9 @@ def admin():
                     elif (not flat) and (not comp) and (not ic_lamp): simc[f]='off'
                     else: simc[f]='err'
                 #else: simc[f]='off'
+                if compU>tharMax:
+                    #broken lamp!
+                    simc[f]+='-ThArErr'
             else: simc[f]=''
             
             if 'OBJECT' in header:
