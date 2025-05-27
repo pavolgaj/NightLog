@@ -29,12 +29,7 @@ def SNR(name,signal=False,points=50,offset=0,mask=''):
         center=np.ma.masked_array(center,mask=mask).filled(np.nan)
 
     if points==0:
-        bg=np.nanpercentile(center,25)#+2
-        #bg=np.mean(center[center<np.percentile(center,50)])
-
-        #mse = (center-bg)**2
-        #mse[center<bg]=0
-        #snr = 10*np.log10(np.mean(mse))
+        bg=np.nanpercentile(center,25) #estimate background level
         snr=np.sqrt(np.nanpercentile(center-bg,99))
 
         if signal: return snr, center, bg
@@ -45,7 +40,6 @@ def SNR(name,signal=False,points=50,offset=0,mask=''):
         values = center[i:i+points]
 
         #estimate background level
-        #bg=np.median(values[values<np.percentile(values,80)])
         bg=np.nanpercentile(values,25)
         bgs.append(bg)
 
@@ -54,7 +48,6 @@ def SNR(name,signal=False,points=50,offset=0,mask=''):
         values = center[i+points:]
 
         #estimate background level
-        #bg=np.median(values[values<np.percentile(values,80)])
         bg=np.nanpercentile(values,25)
         bgs.append(bg)
 
@@ -63,8 +56,8 @@ def SNR(name,signal=False,points=50,offset=0,mask=''):
 
     snr=np.sqrt(np.nanpercentile(center-bg,99))
 
-    if signal: return np.mean(snr), center, bg
-    else: return np.mean(snr)
+    if signal: return snr, center, bg
+    else: return snr
 
 
 if __name__ == "__main__":
