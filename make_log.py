@@ -276,11 +276,11 @@ if os.path.isfile('notes/'+date+'.json'):
 
 #load general and meteo notes -> modify newlines
 if not os.path.isfile('logs/general-'+year+'.csv'):
-    f=open('year/meteo-'+year+'.csv','w')
+    f=open('logs/meteo-'+year+'.csv','w')
     f.write('night,notes\n')
     f.close()
 
-    f=open('year/general-'+year+'.csv','w')
+    f=open('logs/general-'+year+'.csv','w')
     f.write('night,notes\n')
     f.close()
 

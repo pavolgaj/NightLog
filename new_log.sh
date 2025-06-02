@@ -13,7 +13,7 @@ do
     fi
 done
 
-for obs in $path/*/
+for obs in $path/20*/
 do
     obsDate=`basename $obs`
     if ! [ -e "logs/"$obsDate"_log.pdf" ]

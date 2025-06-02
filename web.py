@@ -128,7 +128,6 @@ def main():
 
     if 'timestamp' in notes: ts0=notes['timestamp']
     else: ts0=0
-    ts=0
     
 
     #list all files + split path and name
@@ -221,9 +220,9 @@ def main():
             #get all individual notes
             if 'fits' in x: notes[x]=request.form[x]
 
-        if not request.form['path']==path: notes={}
         notes['meteo']=request.form['meteo']
-        notes['general']=request.form['general']
+        notes['general']=request.form['general']        
+        if not request.form['path']==path: notes={}
         
         if 'timestamp' in session: ts=session.get('timestamp')
         else: ts=0
@@ -231,7 +230,7 @@ def main():
         #load saved notes to web
         if ts0>ts:
             for x in notes:
-                if x=='timestamp': continue
+                if x=='timestamp': continue                
                 if x in notes0:
                     if len(notes0[x])>len(notes[x]): notes[x]=notes0[x]
 
