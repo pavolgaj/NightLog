@@ -108,8 +108,22 @@
         </div>
         {% if condi %}
         <center>
-            <h3>{{ condi['date'] }} {{ condi['time'] }}</h3>
+            <h3><span id='time'>{{ condi['date'] }} {{ condi['time'] }}</span></h3>
         </center>
+        <script>
+            var dt=Date.parse("{{ condi['date'] }} {{ condi['time'] }}Z");
+            var now=Date.parse(new Date);
+            var header=document.getElementById('time');
+            
+            if ((now-dt)/1000/60>30) {
+                // large time diff.                
+                header.className='limit';
+            }
+            else {
+                header.className='';
+            }
+            
+        </script>
         <!-- telescope status -->
         <div class="data">
             <label style="display: inline;">RA</label> {{ condi['RA'] }}
