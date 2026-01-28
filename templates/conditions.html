@@ -111,11 +111,11 @@
             <h3><span id='time'>{{ condi['date'] }} {{ condi['time'] }}</span></h3>
         </center>
         <script>
-            var dt=Date.parse("{{ condi['date'] }} {{ condi['time'] }}Z");
+            var dat=Date.parse("{{ condi['date'] }} {{ condi['time'] }}Z");
             var now=Date.parse(new Date);
             var header=document.getElementById('time');
             
-            if ((now-dt)/1000/60>30) {
+            if ((now-dat)/1000/60>30) {
                 // large time diff.                
                 header.className='limit';
             }
