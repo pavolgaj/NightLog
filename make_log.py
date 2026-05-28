@@ -16,7 +16,8 @@ import csv
 
 def header(name):
     '''read fits header'''
-    hdu=fits.open(name)[0]
+    try: hdu=fits.open(name)[0]
+    except: return
     header=hdu.header
 
     if 'IMAGETYP' not in header:
@@ -104,7 +105,7 @@ def header(name):
         ele=header['HEIGHT']
     else: ra='None'
 
-    if ra.strip()=='None':
+    if ra.strip()=='None' or len(ra.strip())==0:
         ra=''
         dec=''
         alt=''
@@ -123,6 +124,7 @@ def header(name):
         #ele=header['HEIGHT']
 
         #calculate altitude and airmass of target
+        #print(name)
         star=SkyCoord(ra,dec,unit=(u.hourangle, u.deg))
         obs=EarthLocation(lon=lon*u.deg,lat=lat*u.deg,height=ele*u.m)
 

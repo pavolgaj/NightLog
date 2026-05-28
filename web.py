@@ -556,6 +556,8 @@ def guiderInfo(name):
     info['user-offset_DEC']=header['TELUODEC']
     info['guider-offset_RA']=header['TELAORA']
     info['guider-offset_DEC']=header['TELAODEC']
+    
+    if len(header['RA'].strip())==0 or header['RA'].strip()=='None': return {}
 
     loc=EarthLocation(lon=float(header['LONGITUD'])*u.deg, lat=float(header['LATITUDE'])*u.deg, height=float(header['HEIGHT'])*u.meter)
     dt=Time(info['date']+' '+info['time'])
@@ -597,6 +599,10 @@ def guiderInfo(name):
         limit=westLim
 
     #estimate time to limits
+    if len(header['TELHA'].strip())==0: 
+        info['limit']=-1
+        return info
+    
     try:
         ha=float(header['TELHA'])
         da=float(header['TELDA'])

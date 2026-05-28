@@ -143,9 +143,11 @@
             <br>
             <label style="display: inline;">Telescope position</label> {{ condi['pos'] }}&nbsp;&nbsp;
             <label style="display: inline;">Track distance</label>
+            {% if 'limit' in condi %}
             <span {% if condi['limit']<0.5 %}class="limit" {% elif condi['limit']<0.75 %}class="warning" {% endif
                 %}>{{ condi['limit'] | round(1) }} hours
             </span>
+            {% endif %}
             &nbsp;
             {% if 'ha' in condi %}
             <button type="button" class="modify-row" name="plot" title="Plot telescope limits"
