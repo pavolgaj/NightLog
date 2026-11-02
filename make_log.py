@@ -188,37 +188,37 @@ def header(name):
 
         #else: simult='off'
     elif 'SIMULT' in header and 'PLATOS CU FLAT LAMP 1' in header:
-            #if header['SIMULT']=='THAR_CU': simult='ThAr'
-            #elif header['SIMULT']=='I2_CU': simult='IC'
-            #elif header['SIMULT']=='OFF' and ('ttarget' in obj or 'tcomp' in obj or 'tflat' in obj):
-    
-            flat=header['PLATOS CU FLAT LAMP 1']
-            ic_lamp=header['PLATOS CU FLAT LAMP 2']
-            comp=(header['PLATOS CU COMP LAMP 1'] or header['PLATOS CU COMP LAMP 2'])
-            filt1=header['PLATOS CU FILTER 1']
-            filt2=header['PLATOS CU FILTER 2']
-            apfilt1=header['PLATOS CU APPLIED FILTER 1']
-            apfilt2=header['PLATOS CU APPLIED FILTER 2']
-            compU=header['PLATOS CU COMP LAMP VOLTAGE']
-            compI=header['PLATOS CU COMP LAMP CURRENT']
-            cu_ic=header['PLATOS CU IODINE CELL']
-            flatI=header['PLATOS CU DEMANDED LED LAMP CURRENT']
-    
-            if compU>100 and compI>5: comp=True
-            else: comp=False
-            
-            if flatI>10: flat=True
-            else: flat=False
-    
-            if apfilt2=='FILTER_CLOSED': simult='off'
-            else:
-                if ic_lamp and cu_ic and not (comp or flat): simult='IC'
-                elif comp and not (flat or ic_lamp): simult='ThAr'
-                elif flat and not (comp or ic_lamp): simult='flat'
-                elif (not flat) and (not comp) and (not ic_lamp): simult='off'
-                else: simult='err'
-    
-            #else: simult='off'
+        #if header['SIMULT']=='THAR_CU': simult='ThAr'
+        #elif header['SIMULT']=='I2_CU': simult='IC'
+        #elif header['SIMULT']=='OFF' and ('ttarget' in obj or 'tcomp' in obj or 'tflat' in obj):
+
+        flat=header['PLATOS CU FLAT LAMP 1']
+        ic_lamp=header['PLATOS CU FLAT LAMP 2']
+        comp=(header['PLATOS CU COMP LAMP 1'] or header['PLATOS CU COMP LAMP 2'])
+        filt1=header['PLATOS CU FILTER 1']
+        filt2=header['PLATOS CU FILTER 2']
+        apfilt1=header['PLATOS CU APPLIED FILTER 1']
+        apfilt2=header['PLATOS CU APPLIED FILTER 2']
+        compU=header['PLATOS CU COMP LAMP VOLTAGE']
+        compI=header['PLATOS CU COMP LAMP CURRENT']
+        cu_ic=header['PLATOS CU IODINE CELL']
+        flatI=header['PLATOS CU DEMANDED LED LAMP CURRENT']
+
+        if compU>100 and compI>5: comp=True
+        else: comp=False
+        
+        if flatI>10: flat=True
+        else: flat=False
+
+        if apfilt2=='FILTER_CLOSED': simult='off'
+        else:
+            if ic_lamp and cu_ic and not (comp or flat): simult='IC'
+            elif comp and not (flat or ic_lamp): simult='ThAr'
+            elif flat and not (comp or ic_lamp): simult='flat'
+            elif (not flat) and (not comp) and (not ic_lamp): simult='off'
+            else: simult='err'
+
+        #else: simult='off'
     else: simult=''
 
     #get meteo data
@@ -247,20 +247,20 @@ def header(name):
             wind_dir=float(header['METEO WIND DIRECTION'])
             press=float(header['METEO ATMOSPHERIC PRESSURE'])
     elif 'PLATOS METEO TEMPERATURE' in header:
-            if header['PLATOS METEO TEMPERATURE'].strip()=='None':
-                temp=None
-                hum=None
-                clouds=None
-                wind=None
-                wind_dir=None
-                press=None
-            else:
-                temp=float(header['PLATOS METEO TEMPERATURE'])
-                hum=float(header['PLATOS METEO HUMIDITY'])
-                clouds=float(header['PLATOS METEO PYRGEOMETER'])
-                wind=float(header['PLATOS METEO WIND SPEED'])
-                wind_dir=float(header['PLATOS METEO WIND DIRECTION'])
-                press=float(header['PLATOS METEO ATMOSPHERIC PRESSURE'])
+        if header['PLATOS METEO TEMPERATURE'].strip()=='None':
+            temp=None
+            hum=None
+            clouds=None
+            wind=None
+            wind_dir=None
+            press=None
+        else:
+            temp=float(header['PLATOS METEO TEMPERATURE'])
+            hum=float(header['PLATOS METEO HUMIDITY'])
+            clouds=float(header['PLATOS METEO PYRGEOMETER'])
+            wind=float(header['PLATOS METEO WIND SPEED'])
+            wind_dir=float(header['PLATOS METEO WIND DIRECTION'])
+            press=float(header['PLATOS METEO ATMOSPHERIC PRESSURE'])
     elif 'METEO_TEMPERATURE' in header:
         temp=float(header['METEO_TEMPERATURE'])
         hum=float(header['METEO_HUMIDITY'])
