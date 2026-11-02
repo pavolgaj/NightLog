@@ -156,10 +156,14 @@ def main():
                     if header['FRONTEND_POSITION2']>79000 and header['FRONTEND_POSITION2']<100000: ic[f]='no'
                     elif header['FRONTEND_POSITION2']<2000 and header['FRONTEND_POSITION2']>50: ic[f]='yes'
                     else: ic[f]='err'
+                elif 'PLATOS FRONTEND POSITION2' in header:
+                    if header['PLATOS FRONTEND POSITION2']>79000 and header['PLATOS FRONTEND POSITION2']<100000: ic[f]='no'
+                    elif header['PLATOS FRONTEND POSITION2']<2000 and header['PLATOS FRONTEND POSITION2']>50: ic[f]='yes'
+                    else: ic[f]='err'
                 else: ic[f]=''
 
                 #sim.cal. - CU
-                if 'SIMULT' in header:
+                if 'SIMULT' in header and 'CU_FLAT_LAMP_1' in header:
                     #if header['SIMULT']=='THAR_CU': sim[f]='ThAr'
                     #elif header['SIMULT']=='I2_CU': sim[f]='IC'
                     #elif header['SIMULT']=='OFF' and ('ttarget' in header['OBJECT'] or 'tcomp' in header['OBJECT'] or 'tflat' in header['OBJECT']):
@@ -194,6 +198,41 @@ def main():
                         sim[f]+='-ThArErr'
                         
                     #else: sim[f]='off'
+                elif 'SIMULT' in header and 'PLATOS CU FLAT LAMP 1' in header:
+                    #if header['SIMULT']=='THAR_CU': sim[f]='ThAr'
+                    #elif header['SIMULT']=='I2_CU': sim[f]='IC'
+                    #elif header['SIMULT']=='OFF' and ('ttarget' in header['OBJECT'] or 'tcomp' in header['OBJECT'] or 'tflat' in header['OBJECT']):
+                    flat=header['PLATOS CU FLAT LAMP 1']
+                    ic_lamp=header['PLATOS CU FLAT LAMP 2']
+                    comp=(header['PLATOS CU COMP LAMP 1'] or header['PLATOS CU COMP LAMP 2'])
+                    filt1=header['PLATOS CU FILTER 1']
+                    filt2=header['PLATOS CU FILTER 2']
+                    apfilt1=header['PLATOS CU APPLIED FILTER 1']
+                    apfilt2=header['PLATOS CU APPLIED FILTER 2']
+                    compU=header['PLATOS CU COMP LAMP VOLTAGE']
+                    compI=header['PLATOS CU COMP LAMP CURRENT']
+                    cu_ic=header['PLATOS CU IODINE CELL']
+                    flatI=header['PLATOS CU DEMANDED LED LAMP CURRENT']
+
+                    if compU>100 and compI>5: comp=True
+                    else: comp=False
+
+                    if flatI>10: flat=True
+                    else: flat=False
+
+                    if apfilt2=='FILTER_CLOSED': sim[f]='off'
+                    else:
+                        if ic_lamp and cu_ic and not (comp or flat): sim[f]='IC'
+                        elif comp and not (flat or ic_lamp): sim[f]='ThAr'
+                        elif flat and not (comp or ic_lamp): sim[f]='flat'
+                        elif (not flat) and (not comp) and (not ic_lamp): sim[f]='off'
+                        else: sim[f]='err'
+                        
+                    if compU>tharMax:
+                        #broken lamp!
+                        sim[f]+='-ThArErr'
+                        
+                    #else: sim[f]='off'
                 else: sim[f]=''
                 
                 if 'OBJECT' in header:
@@ -203,8 +242,8 @@ def main():
                     else: postfix[f]=''
                 else: postfix[f]=''
                 
-
-                exp[f]=int(round(header['EXPOSURE']))
+                if 'EXPOSURE' in header: exp[f]=int(round(header['EXPOSURE']))
+                else: exp[f]=int(round(header['EXPTIME']))
 
             except:
                 snr[f]=''
@@ -408,10 +447,14 @@ def admin():
                 if header['FRONTEND_POSITION2']>79000 and header['FRONTEND_POSITION2']<100000: ics[f]='no'
                 elif header['FRONTEND_POSITION2']<2000 and header['FRONTEND_POSITION2']>50: ics[f]='yes'
                 else: ics[f]='err'
+            elif 'PLATOS FRONTEND POSITION2' in header:
+                if header['PLATOS FRONTEND POSITION2']>79000 and header['PLATOS FRONTEND POSITION2']<100000: ics[f]='no'
+                elif header['PLATOS FRONTEND POSITION2']<2000 and header['PLATOS FRONTEND POSITION2']>50: ics[f]='yes'
+                else: ics[f]='err'
             else: ics[f]=''
 
             #sim.cal. - CU
-            if 'SIMULT' in header:
+            if 'SIMULT' in header and 'CU_FLAT_LAMP_1' in header:
                 #if header['SIMULT']=='THAR_CU': simc[f]='ThAr'
                 #elif header['SIMULT']=='I2_CU': simc[f]='IC'
                 #elif header['SIMULT']=='OFF' and ('ttarget' in header['OBJECT'] or 'tcomp' in header['OBJECT'] or 'tflat' in header['OBJECT']):
@@ -444,6 +487,39 @@ def admin():
                 if compU>tharMax:
                     #broken lamp!
                     simc[f]+='-ThArErr'
+            elif 'SIMULT' in header and 'PLATOS CU FLAT LAMP 1' in header:
+                #if header['SIMULT']=='THAR_CU': simc[f]='ThAr'
+                #elif header['SIMULT']=='I2_CU': simc[f]='IC'
+                #elif header['SIMULT']=='OFF' and ('ttarget' in header['OBJECT'] or 'tcomp' in header['OBJECT'] or 'tflat' in header['OBJECT']):
+                flat=header['PLATOS CU FLAT LAMP 1']
+                ic_lamp=header['PLATOS CU FLAT LAMP 2']
+                comp=(header['PLATOS CU COMP LAMP 1'] or header['PLATOS CU COMP LAMP 2'])
+                filt1=header['PLATOS CU FILTER 1']
+                filt2=header['PLATOS CU FILTER 2']
+                apfilt1=header['PLATOS CU APPLIED FILTER 1']
+                apfilt2=header['PLATOS CU APPLIED FILTER 2']
+                compU=header['PLATOS CU COMP LAMP VOLTAGE']
+                compI=header['PLATOS CU COMP LAMP CURRENT']
+                cu_ic=header['PLATOS CU IODINE CELL']
+                flatI=header['PLATOS CU DEMANDED LED LAMP CURRENT']
+
+                if compU>100 and compI>5: comp=True
+                else: comp=False
+
+                if flatI>10: flat=True
+                else: flat=False
+
+                if apfilt2=='FILTER_CLOSED': simc[f]='off'
+                else:
+                    if ic_lamp and cu_ic and not (comp or flat): simc[f]='IC'
+                    elif comp and not (flat or ic_lamp): simc[f]='ThAr'
+                    elif flat and not (comp or ic_lamp): simc[f]='flat'
+                    elif (not flat) and (not comp) and (not ic_lamp): simc[f]='off'
+                    else: simc[f]='err'
+                #else: simc[f]='off'
+                if compU>tharMax:
+                    #broken lamp!
+                    simc[f]+='-ThArErr'
             else: simc[f]=''
             
             if 'OBJECT' in header:
@@ -453,7 +529,9 @@ def admin():
                 else: post[f]=''
             else: post[f]=''
 
-            exps[f]=int(round(header['EXPOSURE']))
+            if 'EXPOSURE' in header: exps[f]=int(round(header['EXPOSURE']))
+            else: exps[f]=int(round(header['EXPTIME']))
+            
         except:
             sn[f]=''
             ics[f]=''

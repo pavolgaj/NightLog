@@ -69,6 +69,9 @@ def header(name):
         tmp=filename.split('_')
         obj='_'.join(tmp[3:])
         obj=obj[:obj.rfind('.')]
+        
+    if 'PLATOS OBJ ID' in header: objID=header['PLATOS OBJ ID'].strip()
+    else: objID=''
 
     if 'DATE-OBS' in header:
         date=header['DATE-OBS']
@@ -78,7 +81,8 @@ def header(name):
     else: date=header['FRAME']
 
 
-    exp=int(round(header['EXPOSURE']))
+    if 'EXPOSURE' in header: exp=int(round(header['EXPOSURE']))
+    else: exp=int(round(header['EXPTIME']))
 
     #get coordinates
     if 'TCS COORDINATES RA' in header:
@@ -98,11 +102,16 @@ def header(name):
         #platospec
         ra=header['RA']
         dec=header['DEC']
-        #d=dec0.find('.')
-        #dec=dec0[:d-4]+':'+dec0[d-4:d-2]+':'+dec0[d-2:]
         lon=header['LONGITUD']
         lat=header['LATITUDE']
         ele=header['HEIGHT']
+    elif 'OBJCTRA' in header:
+        #platospec new
+        ra=header['OBJCTRA']
+        dec=header['OBJCTDEC']
+        lon=header['PLATOS TEL GEOLON']
+        lat=header['PLATOS TEL GEOLAT']
+        ele=header['PLATOS TEL GEOELEV']
     else: ra='None'
 
     if ra.strip()=='None' or len(ra.strip())==0:
@@ -140,9 +149,13 @@ def header(name):
         if header['FRONTEND_POSITION2']>79000 and header['FRONTEND_POSITION2']<100000: ic='no'
         elif header['FRONTEND_POSITION2']<2000 and header['FRONTEND_POSITION2']>50: ic='yes'
         else: ic='err'
+    elif 'PLATOS FRONTEND POSITION2' in header:
+        if header['PLATOS FRONTEND POSITION2']>79000 and header['PLATOS FRONTEND POSITION2']<100000: ic='no'
+        elif header['PLATOS FRONTEND POSITION2']<2000 and header['PLATOS FRONTEND POSITION2']>50: ic='yes'
+        else: ic='err'
     else: ic=''
 
-    if 'SIMULT' in header:
+    if 'SIMULT' in header and 'CU_FLAT_LAMP_1' in header:
         #if header['SIMULT']=='THAR_CU': simult='ThAr'
         #elif header['SIMULT']=='I2_CU': simult='IC'
         #elif header['SIMULT']=='OFF' and ('ttarget' in obj or 'tcomp' in obj or 'tflat' in obj):
@@ -174,6 +187,38 @@ def header(name):
             else: simult='err'
 
         #else: simult='off'
+    elif 'SIMULT' in header and 'PLATOS CU FLAT LAMP 1' in header:
+            #if header['SIMULT']=='THAR_CU': simult='ThAr'
+            #elif header['SIMULT']=='I2_CU': simult='IC'
+            #elif header['SIMULT']=='OFF' and ('ttarget' in obj or 'tcomp' in obj or 'tflat' in obj):
+    
+            flat=header['PLATOS CU FLAT LAMP 1']
+            ic_lamp=header['PLATOS CU FLAT LAMP 2']
+            comp=(header['PLATOS CU COMP LAMP 1'] or header['PLATOS CU COMP LAMP 2'])
+            filt1=header['PLATOS CU FILTER 1']
+            filt2=header['PLATOS CU FILTER 2']
+            apfilt1=header['PLATOS CU APPLIED FILTER 1']
+            apfilt2=header['PLATOS CU APPLIED FILTER 2']
+            compU=header['PLATOS CU COMP LAMP VOLTAGE']
+            compI=header['PLATOS CU COMP LAMP CURRENT']
+            cu_ic=header['PLATOS CU IODINE CELL']
+            flatI=header['PLATOS CU DEMANDED LED LAMP CURRENT']
+    
+            if compU>100 and compI>5: comp=True
+            else: comp=False
+            
+            if flatI>10: flat=True
+            else: flat=False
+    
+            if apfilt2=='FILTER_CLOSED': simult='off'
+            else:
+                if ic_lamp and cu_ic and not (comp or flat): simult='IC'
+                elif comp and not (flat or ic_lamp): simult='ThAr'
+                elif flat and not (comp or ic_lamp): simult='flat'
+                elif (not flat) and (not comp) and (not ic_lamp): simult='off'
+                else: simult='err'
+    
+            #else: simult='off'
     else: simult=''
 
     #get meteo data
@@ -201,6 +246,21 @@ def header(name):
             wind=float(header['METEO WIND SPEED'])
             wind_dir=float(header['METEO WIND DIRECTION'])
             press=float(header['METEO ATMOSPHERIC PRESSURE'])
+    elif 'PLATOS METEO TEMPERATURE' in header:
+            if header['PLATOS METEO TEMPERATURE'].strip()=='None':
+                temp=None
+                hum=None
+                clouds=None
+                wind=None
+                wind_dir=None
+                press=None
+            else:
+                temp=float(header['PLATOS METEO TEMPERATURE'])
+                hum=float(header['PLATOS METEO HUMIDITY'])
+                clouds=float(header['PLATOS METEO PYRGEOMETER'])
+                wind=float(header['PLATOS METEO WIND SPEED'])
+                wind_dir=float(header['PLATOS METEO WIND DIRECTION'])
+                press=float(header['PLATOS METEO ATMOSPHERIC PRESSURE'])
     elif 'METEO_TEMPERATURE' in header:
         temp=float(header['METEO_TEMPERATURE'])
         hum=float(header['METEO_HUMIDITY'])
@@ -244,7 +304,7 @@ def header(name):
 
     return {'object':obj,'type':typ,'datetime':date,'exposure':exp,'ra':ra,'dec':dec,'filename':os.path.basename(name),'temp':temp,'hum':hum,
             'clouds':clouds,'wind':wind,'winddir':wind_dir,'press':press,'altitude':alt,'airmass':air,'notes':notes,'ra1':ra1,'dec1':dec1,
-            'notes1':notes1,'object1':obj1,'snr':snr,'ic':ic,'simult':simult}
+            'notes1':notes1,'object1':obj1,'snr':snr,'ic':ic,'simult':simult,'objid':objID}
 
 #meteo guider? - probably take very long time (number of files...)
 #fits header -> OCHUM, OCWINDD, OCWINDS, OCTEMP, OCPGM
@@ -371,7 +431,7 @@ if len(data0)>0:
 
     #make csv log
     df['instrument']='platospec'
-    df[['object','date','time','exposure','altitude','airmass','ra','dec','notes','filename','snr','ic','simult','instrument']].to_csv('logs/'+date+'_log.csv',index=False)
+    df[['object','date','time','exposure','altitude','airmass','ra','dec','notes','filename','snr','ic','simult','instrument','objid']].to_csv('logs/'+date+'_log.csv',index=False)
 
     #rename cols and convert df for pdf
     df2=df[['object1','time','exposure','altitude','airmass','ra1','dec1','snr','simult','ic','notes1']].rename(columns={'ra1': 'ra', 'dec1': 'dec','notes1':'notes','object1':'object','simult':'sim'})
@@ -391,7 +451,7 @@ if len(data0)>0:
 else:
     #NO data!
     f=open('logs/'+date+'_log.csv','w')
-    f.write('object,date,time,exposure,altitude,airmass,ra,dec,notes,filename\n')
+    f.write('object,date,time,exposure,altitude,airmass,ra,dec,notes,filename,snr,ic,simult,instrument,objid\n')
     f.close()
 
     p.put_dataframe_on_pdfpage(df=None)
