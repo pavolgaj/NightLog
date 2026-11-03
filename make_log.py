@@ -63,7 +63,9 @@ def header(name):
         #obj=header['OBJECT']
         #date=header['DATE-OBS']
 
-    if 'OBJECT' in header: obj=header['OBJECT'].strip()
+    if 'OBJECT' in header: 
+        if typ=='science': obj=header['OBJECT'].strip()
+        else: obj=typ
     else:
         filename=os.path.basename(name)
         tmp=filename.split('_')
@@ -98,13 +100,6 @@ def header(name):
         lon=header['GEOLON']
         lat=header['GEOLAT']
         ele=header['GEOELEV']
-    elif 'RA' in header:
-        #platospec
-        ra=header['RA']
-        dec=header['DEC']
-        lon=header['LONGITUD']
-        lat=header['LATITUDE']
-        ele=header['HEIGHT']
     elif 'OBJCTRA' in header:
         #platospec new
         ra=header['OBJCTRA']
@@ -112,6 +107,14 @@ def header(name):
         lon=header['PLATOS TEL GEOLON']
         lat=header['PLATOS TEL GEOLAT']
         ele=header['PLATOS TEL GEOELEV']
+    elif 'RA' in header:
+        #platospec
+        ra=header['RA']
+        dec=header['DEC']
+        lon=header['LONGITUD']
+        lat=header['LATITUDE']
+        ele=header['HEIGHT']
+    
     else: ra='None'
 
     if ra.strip()=='None' or len(ra.strip())==0:
@@ -247,20 +250,20 @@ def header(name):
             wind_dir=float(header['METEO WIND DIRECTION'])
             press=float(header['METEO ATMOSPHERIC PRESSURE'])
     elif 'PLATOS METEO TEMPERATURE' in header:
-        if header['PLATOS METEO TEMPERATURE'].strip()=='None':
-            temp=None
-            hum=None
-            clouds=None
-            wind=None
-            wind_dir=None
-            press=None
-        else:
+        try:
             temp=float(header['PLATOS METEO TEMPERATURE'])
             hum=float(header['PLATOS METEO HUMIDITY'])
             clouds=float(header['PLATOS METEO PYRGEOMETER'])
             wind=float(header['PLATOS METEO WIND SPEED'])
             wind_dir=float(header['PLATOS METEO WIND DIRECTION'])
             press=float(header['PLATOS METEO ATMOSPHERIC PRESSURE'])
+        except:
+            temp=None
+            hum=None
+            clouds=None
+            wind=None
+            wind_dir=None
+            press=None
     elif 'METEO_TEMPERATURE' in header:
         temp=float(header['METEO_TEMPERATURE'])
         hum=float(header['METEO_HUMIDITY'])
